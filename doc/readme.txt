@@ -1,17 +1,20 @@
 Overview
 ========
-The Hello World demo application provides a sanity check for the new SDK build environments and board bring up. The Hello
-World demo prints the "Hello World" string to the terminal using the SDK UART drivers. The purpose of this demo is to
-show how to use the UART, and to provide a simple project for debugging and further development.
-Note: Please input one character at a time. If you input too many characters each time, the receiver may overflow
-because the low level UART uses simple polling way for receiving. If you want to try inputting many characters each time,
-just define DEBUG_CONSOLE_TRANSFER_NON_BLOCKING in your project to use the advanced debug console utility.
+The purpose of this project is to establish a LPSPI3 DMA transfer of 25 bytes 
+to be triggered by a GPIO input falling edge.
+
+It is intended that the user of this project have a logic analyzer attached
+the following pins:
+J23-23 MOSI
+J23-22 CS
+J23-21 CLK
+J23-7  MISO
+
+MISO can be shorted to MOSI for verification of data
+
 
 Toolchain supported
 ===================
-- IAR embedded Workbench  9.10.2
-- Keil MDK  5.34
-- GCC ARM Embedded  10.2.1
 - MCUXpresso  11.4.0
 
 Hardware requirements
@@ -38,15 +41,12 @@ Prepare the Demo
 
 Running the demo
 ================
-The log below shows the output of the hello world demo in the terminal window:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-hello world.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+the UART connection to the EVKB board should open with the following text message:
 
-Note:
-To download binary into qspiflash and boot from qspiflash directly, following steps are needed:
-1. Compile flash target of the project, and get the binaray file "hello_world.bin".
-3. Set the SW7: 1 off 2 off 3 on 4 off, then power on the board and connect USB cable to J23.
-4. Drop the binaray into disk "RT1060-EVK" on PC.
-5. Wait for the disk disappear and appear again which will take couple of seconds.
-7. Reset the board by pressing SW3 or power off and on the board. 
+SPI3 DMA from GPIO test
+
+
+From this point enter the following single character commands:
+  1 : initialize clocks and peripherals
+  2 : simple LPSPI3 Tx test to transmit ascii characters '0' to '9'
+ 
