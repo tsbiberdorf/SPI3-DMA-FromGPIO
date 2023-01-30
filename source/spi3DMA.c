@@ -376,7 +376,11 @@ void DMA_irq(void)
 	irqDmaCnt++;
 }
 
-
+/**
+ * This function follows the operations that the evkmimxrt1060_lpspi_edma_b2b_transfer_master SDK
+ * example perform.
+ * This method uses a scatter/gather method so that the SPI3 CS0 is active during the full transfer.
+ */
 void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 {
 	edma_tcd_t *rxTCD;
@@ -466,6 +470,11 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	spiBASE->DER |= (LPSPI_DER_TDDE_MASK /*!< Transmit data DMA enable */ | LPSPI_DER_RDDE_MASK /*!< Receive data DMA enable */ );
 }
 
+/**
+ * This procedure is the operation that is provided by the SDK example evkmimxrt1060_lpspi_edma_b2b_transfer_master
+ * This process required complete resetting of all registers before it can be triggered to run again.
+ * This method can not support a continued program and forget method.
+ */
 void SingleDMATxTest()
 {
 	uint16_t idx;
