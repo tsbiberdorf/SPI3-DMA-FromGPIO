@@ -23,6 +23,7 @@
 extern void InitClocks();
 extern void InitSPI3Peripheral();
 extern void TxTest();
+extern void SingleDMATxTest();
 
 /*******************************************************************************
  * Code
@@ -58,6 +59,10 @@ int main(void)
         case '2':
         	// simple test to transmit ascii '0' to '9' out SPI3 port
         	TxTest();
+        	break;
+        case '3':
+        	// simple test to transmit ascii '0' to '9' out SPI3 port
+        	SingleDMATxTest();
         	break;
 
         }
