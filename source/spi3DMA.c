@@ -407,7 +407,7 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
     /* For DMA transfer , we'd better not masked the transmit data and receive data in TCR since the transfer flow is
      * hard to controlled by software. */
 	spiBASE->TCR & ~(LPSPI_TCR_CONT_MASK | LPSPI_TCR_CONTC_MASK | LPSPI_TCR_BYSW_MASK | LPSPI_TCR_PCS_MASK);
-	spiBASE->TCR |= (LPSPI_TCR_CONT_MASK /*| LPSPI_TCR_BYSW_MASK*/ ) ;
+	spiBASE->TCR |= ( 0xC0000000 | LPSPI_TCR_CONT_MASK /*| LPSPI_TCR_BYSW_MASK*/ ) ;
 
     /* Configure rx EDMA transfer channel 0*/
 	rxTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[0];
