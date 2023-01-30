@@ -69,6 +69,35 @@ void InitClocks()
 	CCM->CCGR1 |= 0x00000030;
 }
 
+
+void InitDMAandEDMA()
+{
+	// start DMA0 clocks
+	// refer to Ref Manual, page 1151&1152, section 14.7.26
+	// CCM Clock Gating Register 5 (CCM_CCGR5) bits 7..6
+	CCM->CCGR5 |= 0xC0;
+
+	// now configure the DMAMUX to the SPI3 RX/TX registers.
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] = 0x0;
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] = kDmaRequestMuxLPSPI3Rx;  // set SPI3 RX
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = 0x0;
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = kDmaRequestMuxLPSPI3Tx;  // set SPI3 TX
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+//	DMAMUX->CHCFG[TRIGGER_DMA_TX_CHANNEL] = 0x0;
+//	DMAMUX->CHCFG[TRIGGER_DMA_TX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+//
+//	DMAMUX->CHCFG[TRIGGER_DMA_RX_CHANNEL] = 0x0;
+//	DMAMUX->CHCFG[TRIGGER_DMA_RX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+
+}
+
+/**
+ * Initialize the SPI3 port to support CS0
+ */
 void InitSPI3Peripheral()
 {
 #define ALT2 (2)
@@ -96,7 +125,9 @@ void InitSPI3Peripheral()
 	LPSPI3->TCR = 0xC0000007; // CPOL 1, CPHA 1, PRE 1, PCS0, LSBF 0, BYSW 0, CONT 0, CONTC 0, RXMSK 0, TXMSK 0, WID 1, FRAME 8
 	LPSPI3->CR  = 0x05; // debug en, enable
 
+	InitDMAandEDMA();
 }
+
 
 void TxTest()
 {
@@ -113,31 +144,6 @@ void TxTest()
 		if( readValue != idx)
 			break;
 	}
-}
-
-void InitDMAandEDMA()
-{
-	// start DMA0 clocks
-	// refer to Ref Manual, page 1151&1152, section 14.7.26
-	// CCM Clock Gating Register 5 (CCM_CCGR5) bits 7..6
-	CCM->CCGR5 |= 0xC0;
-
-	// now configure the DMAMUX to the SPI3 RX/TX registers.
-	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] = 0x0;
-	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] = kDmaRequestMuxLPSPI3Rx;  // set SPI3 RX
-	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-
-	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = 0x0;
-	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = kDmaRequestMuxLPSPI3Tx;  // set SPI3 TX
-	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-
-//	DMAMUX->CHCFG[TRIGGER_DMA_TX_CHANNEL] = 0x0;
-//	DMAMUX->CHCFG[TRIGGER_DMA_TX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-//
-//	DMAMUX->CHCFG[TRIGGER_DMA_RX_CHANNEL] = 0x0;
-//	DMAMUX->CHCFG[TRIGGER_DMA_RX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-
-
 }
 
 #define REMOVE_CONT (1)
@@ -379,7 +385,7 @@ void DMA_irq(void)
 /**
  * This function follows the operations that the evkmimxrt1060_lpspi_edma_b2b_transfer_master SDK
  * example perform.
- * This method uses a scatter/gather method so that the SPI3 CS0 is active during the full transfer.
+ * This method does remove the scatter/gather method so a CS is present on each byte
  */
 void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 {
@@ -387,8 +393,6 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	edma_tcd_t *txTCD;
 	DMA_Type *dmaBASE = DMA0;
 	LPSPI_Type *spiBASE = LPSPI3;
-	static uint32_t trasmitCommand;
-	static volatile edma_tcd_t softwareTCD_pcsContinuous; // store in RAM
 
 	spiBASE->CR &= ~LPSPI_CR_MEN_MASK ; // disable LPSPI3
 	spiBASE->CR |= (1<<FLUSH_TX_FIFO_SHIFT) | (1<<FLUSH_RX_FIFO_SHIFT); // flush FIFOs
@@ -407,7 +411,7 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
     /* For DMA transfer , we'd better not masked the transmit data and receive data in TCR since the transfer flow is
      * hard to controlled by software. */
 	spiBASE->TCR & ~(LPSPI_TCR_CONT_MASK | LPSPI_TCR_CONTC_MASK | LPSPI_TCR_BYSW_MASK | LPSPI_TCR_PCS_MASK);
-	spiBASE->TCR |= ( 0xC0000000 | LPSPI_TCR_CONT_MASK /*| LPSPI_TCR_BYSW_MASK*/ ) ;
+	spiBASE->TCR |= ( 0xC0000000/* | LPSPI_TCR_CONT_MASK | LPSPI_TCR_BYSW_MASK*/ ) ;
 
     /* Configure rx EDMA transfer channel 0*/
 	rxTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[0];
@@ -428,17 +432,6 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	txTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[1];
 	EDMATcdReset(txTCD);
 
-	EDMATcdReset(&softwareTCD_pcsContinuous);
-	trasmitCommand = LPSPI3->TCR & ~(LPSPI_TCR_CONTC_MASK | LPSPI_TCR_CONT_MASK);
-	softwareTCD_pcsContinuous.SADDR = (uint32_t)(&trasmitCommand);
-	softwareTCD_pcsContinuous.SOFF = 0;                          // source address offset set to 4 bytes
-	softwareTCD_pcsContinuous.DADDR = (uint32_t)&(LPSPI3->TCR);    // source address offset set to zero as it does not change
-	softwareTCD_pcsContinuous.DOFF = 0;                      // each destination address write will increment by 1 byte
-	softwareTCD_pcsContinuous.ATTR = DMA_ATTR_SSIZE(2) | DMA_ATTR_DSIZE(2); // transfer size of 32 bits (002b => 32-bit) refer to page 134 of RM spec.
-	softwareTCD_pcsContinuous.NBYTES = 4;                    // number of bytes in each minor loop transfer.
-	softwareTCD_pcsContinuous.CITER = 1;                     // number of loops to in the complete instruction to ADC
-	softwareTCD_pcsContinuous.BITER = 1;                     // number of loops to in the complete instruction to ADC
-
 	txTCD->SADDR = ptrTxBuffer;  // our source buffer address to start reading from
 	txTCD->SOFF = 1;            // source address offset set to 1 to increment by one byte per transfer
 	txTCD->DADDR = (uint32_t)&(LPSPI3->TDR); // where the TX data will be placed SPI3 Tx Register
@@ -447,21 +440,8 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	txTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	txTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
-	txTCD->DLAST_SGA = (uint32_t)&softwareTCD_pcsContinuous;
+	txTCD->DLAST_SGA = 0;
 
-
-
-    /*
-        Before call EDMA_TcdSetTransferConfig or EDMA_SetTransferConfig,
-        user must call EDMA_TcdReset or EDMA_ResetChannel which will set
-       DREQ, so must use "|" or "&" rather than "=".
-
-        Clear the DREQ bit because scatter gather has been enabled, so the
-        previous transfer is not the last transfer, and channel request should
-        be enabled at the next transfer(the next TCD).
-    */
-
-	txTCD->CSR =  (txTCD->CSR | (uint16_t)DMA_CSR_ESG_MASK) & ~(uint16_t)DMA_CSR_DREQ_MASK;
 
 	dmaBASE->SERQ = DMA_SERQ_SERQ(1); // eDMA starts transfer TX channel
 	dmaBASE->SERQ = DMA_SERQ_SERQ(0); // eDMA starts transfer RX channel
@@ -486,7 +466,6 @@ void SingleDMATxTest()
 
 	spi3_Tx_Buffer[0] =  0x40  | 0x01; // read command to ADC
 
-	InitDMAandEDMA();
 	RestSPI3Peripheral(spi3_Tx_Buffer,spi3_Rx_Buffer);
 
 }
