@@ -61,7 +61,7 @@ int main(void)
         	TxTest();
         	break;
         case '3':
-        	// simple test to transmit ascii '0' to '9' out SPI3 port
+        	// trigger 25 byte DMA transfer with CS on each byte
         	SingleDMATxTest();
         	break;
 
