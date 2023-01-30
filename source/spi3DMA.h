@@ -11577,6 +11577,511 @@ typedef struct {
  */ /* end of group XBARB_Peripheral_Access_Layer */
 
 
+/*!
+ * @addtogroup GPIO_Peripheral_Access_Layer GPIO Peripheral Access Layer
+ * @{
+ */
+
+/** GPIO - Register Layout Typedef */
+typedef struct {
+  __IO uint32_t DR;                                /**< GPIO data register, offset: 0x0 */
+  __IO uint32_t GDIR;                              /**< GPIO direction register, offset: 0x4 */
+  __I  uint32_t PSR;                               /**< GPIO pad status register, offset: 0x8 */
+  __IO uint32_t ICR1;                              /**< GPIO interrupt configuration register1, offset: 0xC */
+  __IO uint32_t ICR2;                              /**< GPIO interrupt configuration register2, offset: 0x10 */
+  __IO uint32_t IMR;                               /**< GPIO interrupt mask register, offset: 0x14 */
+  __IO uint32_t ISR;                               /**< GPIO interrupt status register, offset: 0x18 */
+  __IO uint32_t EDGE_SEL;                          /**< GPIO edge select register, offset: 0x1C */
+       uint8_t RESERVED_0[100];
+  __O  uint32_t DR_SET;                            /**< GPIO data register SET, offset: 0x84 */
+  __O  uint32_t DR_CLEAR;                          /**< GPIO data register CLEAR, offset: 0x88 */
+  __O  uint32_t DR_TOGGLE;                         /**< GPIO data register TOGGLE, offset: 0x8C */
+} GPIO_Type;
+
+/* ----------------------------------------------------------------------------
+   -- GPIO Register Masks
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup GPIO_Register_Masks GPIO Register Masks
+ * @{
+ */
+
+/*! @name DR - GPIO data register */
+/*! @{ */
+
+#define GPIO_DR_DR_MASK                          (0xFFFFFFFFU)
+#define GPIO_DR_DR_SHIFT                         (0U)
+/*! DR - DR
+ */
+#define GPIO_DR_DR(x)                            (((uint32_t)(((uint32_t)(x)) << GPIO_DR_DR_SHIFT)) & GPIO_DR_DR_MASK)
+/*! @} */
+
+/*! @name GDIR - GPIO direction register */
+/*! @{ */
+
+#define GPIO_GDIR_GDIR_MASK                      (0xFFFFFFFFU)
+#define GPIO_GDIR_GDIR_SHIFT                     (0U)
+/*! GDIR - GDIR
+ */
+#define GPIO_GDIR_GDIR(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_GDIR_GDIR_SHIFT)) & GPIO_GDIR_GDIR_MASK)
+/*! @} */
+
+/*! @name PSR - GPIO pad status register */
+/*! @{ */
+
+#define GPIO_PSR_PSR_MASK                        (0xFFFFFFFFU)
+#define GPIO_PSR_PSR_SHIFT                       (0U)
+/*! PSR - PSR
+ */
+#define GPIO_PSR_PSR(x)                          (((uint32_t)(((uint32_t)(x)) << GPIO_PSR_PSR_SHIFT)) & GPIO_PSR_PSR_MASK)
+/*! @} */
+
+/*! @name ICR1 - GPIO interrupt configuration register1 */
+/*! @{ */
+
+#define GPIO_ICR1_ICR0_MASK                      (0x3U)
+#define GPIO_ICR1_ICR0_SHIFT                     (0U)
+/*! ICR0 - ICR0
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR0(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR0_SHIFT)) & GPIO_ICR1_ICR0_MASK)
+
+#define GPIO_ICR1_ICR1_MASK                      (0xCU)
+#define GPIO_ICR1_ICR1_SHIFT                     (2U)
+/*! ICR1 - ICR1
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR1(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR1_SHIFT)) & GPIO_ICR1_ICR1_MASK)
+
+#define GPIO_ICR1_ICR2_MASK                      (0x30U)
+#define GPIO_ICR1_ICR2_SHIFT                     (4U)
+/*! ICR2 - ICR2
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR2(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR2_SHIFT)) & GPIO_ICR1_ICR2_MASK)
+
+#define GPIO_ICR1_ICR3_MASK                      (0xC0U)
+#define GPIO_ICR1_ICR3_SHIFT                     (6U)
+/*! ICR3 - ICR3
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR3(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR3_SHIFT)) & GPIO_ICR1_ICR3_MASK)
+
+#define GPIO_ICR1_ICR4_MASK                      (0x300U)
+#define GPIO_ICR1_ICR4_SHIFT                     (8U)
+/*! ICR4 - ICR4
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR4(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR4_SHIFT)) & GPIO_ICR1_ICR4_MASK)
+
+#define GPIO_ICR1_ICR5_MASK                      (0xC00U)
+#define GPIO_ICR1_ICR5_SHIFT                     (10U)
+/*! ICR5 - ICR5
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR5(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR5_SHIFT)) & GPIO_ICR1_ICR5_MASK)
+
+#define GPIO_ICR1_ICR6_MASK                      (0x3000U)
+#define GPIO_ICR1_ICR6_SHIFT                     (12U)
+/*! ICR6 - ICR6
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR6(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR6_SHIFT)) & GPIO_ICR1_ICR6_MASK)
+
+#define GPIO_ICR1_ICR7_MASK                      (0xC000U)
+#define GPIO_ICR1_ICR7_SHIFT                     (14U)
+/*! ICR7 - ICR7
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR7(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR7_SHIFT)) & GPIO_ICR1_ICR7_MASK)
+
+#define GPIO_ICR1_ICR8_MASK                      (0x30000U)
+#define GPIO_ICR1_ICR8_SHIFT                     (16U)
+/*! ICR8 - ICR8
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR8(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR8_SHIFT)) & GPIO_ICR1_ICR8_MASK)
+
+#define GPIO_ICR1_ICR9_MASK                      (0xC0000U)
+#define GPIO_ICR1_ICR9_SHIFT                     (18U)
+/*! ICR9 - ICR9
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR9(x)                        (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR9_SHIFT)) & GPIO_ICR1_ICR9_MASK)
+
+#define GPIO_ICR1_ICR10_MASK                     (0x300000U)
+#define GPIO_ICR1_ICR10_SHIFT                    (20U)
+/*! ICR10 - ICR10
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR10(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR10_SHIFT)) & GPIO_ICR1_ICR10_MASK)
+
+#define GPIO_ICR1_ICR11_MASK                     (0xC00000U)
+#define GPIO_ICR1_ICR11_SHIFT                    (22U)
+/*! ICR11 - ICR11
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR11(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR11_SHIFT)) & GPIO_ICR1_ICR11_MASK)
+
+#define GPIO_ICR1_ICR12_MASK                     (0x3000000U)
+#define GPIO_ICR1_ICR12_SHIFT                    (24U)
+/*! ICR12 - ICR12
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR12(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR12_SHIFT)) & GPIO_ICR1_ICR12_MASK)
+
+#define GPIO_ICR1_ICR13_MASK                     (0xC000000U)
+#define GPIO_ICR1_ICR13_SHIFT                    (26U)
+/*! ICR13 - ICR13
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR13(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR13_SHIFT)) & GPIO_ICR1_ICR13_MASK)
+
+#define GPIO_ICR1_ICR14_MASK                     (0x30000000U)
+#define GPIO_ICR1_ICR14_SHIFT                    (28U)
+/*! ICR14 - ICR14
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR14(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR14_SHIFT)) & GPIO_ICR1_ICR14_MASK)
+
+#define GPIO_ICR1_ICR15_MASK                     (0xC0000000U)
+#define GPIO_ICR1_ICR15_SHIFT                    (30U)
+/*! ICR15 - ICR15
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR1_ICR15(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR1_ICR15_SHIFT)) & GPIO_ICR1_ICR15_MASK)
+/*! @} */
+
+/*! @name ICR2 - GPIO interrupt configuration register2 */
+/*! @{ */
+
+#define GPIO_ICR2_ICR16_MASK                     (0x3U)
+#define GPIO_ICR2_ICR16_SHIFT                    (0U)
+/*! ICR16 - ICR16
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR16(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR16_SHIFT)) & GPIO_ICR2_ICR16_MASK)
+
+#define GPIO_ICR2_ICR17_MASK                     (0xCU)
+#define GPIO_ICR2_ICR17_SHIFT                    (2U)
+/*! ICR17 - ICR17
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR17(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR17_SHIFT)) & GPIO_ICR2_ICR17_MASK)
+
+#define GPIO_ICR2_ICR18_MASK                     (0x30U)
+#define GPIO_ICR2_ICR18_SHIFT                    (4U)
+/*! ICR18 - ICR18
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR18(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR18_SHIFT)) & GPIO_ICR2_ICR18_MASK)
+
+#define GPIO_ICR2_ICR19_MASK                     (0xC0U)
+#define GPIO_ICR2_ICR19_SHIFT                    (6U)
+/*! ICR19 - ICR19
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR19(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR19_SHIFT)) & GPIO_ICR2_ICR19_MASK)
+
+#define GPIO_ICR2_ICR20_MASK                     (0x300U)
+#define GPIO_ICR2_ICR20_SHIFT                    (8U)
+/*! ICR20 - ICR20
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR20(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR20_SHIFT)) & GPIO_ICR2_ICR20_MASK)
+
+#define GPIO_ICR2_ICR21_MASK                     (0xC00U)
+#define GPIO_ICR2_ICR21_SHIFT                    (10U)
+/*! ICR21 - ICR21
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR21(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR21_SHIFT)) & GPIO_ICR2_ICR21_MASK)
+
+#define GPIO_ICR2_ICR22_MASK                     (0x3000U)
+#define GPIO_ICR2_ICR22_SHIFT                    (12U)
+/*! ICR22 - ICR22
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR22(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR22_SHIFT)) & GPIO_ICR2_ICR22_MASK)
+
+#define GPIO_ICR2_ICR23_MASK                     (0xC000U)
+#define GPIO_ICR2_ICR23_SHIFT                    (14U)
+/*! ICR23 - ICR23
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR23(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR23_SHIFT)) & GPIO_ICR2_ICR23_MASK)
+
+#define GPIO_ICR2_ICR24_MASK                     (0x30000U)
+#define GPIO_ICR2_ICR24_SHIFT                    (16U)
+/*! ICR24 - ICR24
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR24(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR24_SHIFT)) & GPIO_ICR2_ICR24_MASK)
+
+#define GPIO_ICR2_ICR25_MASK                     (0xC0000U)
+#define GPIO_ICR2_ICR25_SHIFT                    (18U)
+/*! ICR25 - ICR25
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR25(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR25_SHIFT)) & GPIO_ICR2_ICR25_MASK)
+
+#define GPIO_ICR2_ICR26_MASK                     (0x300000U)
+#define GPIO_ICR2_ICR26_SHIFT                    (20U)
+/*! ICR26 - ICR26
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR26(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR26_SHIFT)) & GPIO_ICR2_ICR26_MASK)
+
+#define GPIO_ICR2_ICR27_MASK                     (0xC00000U)
+#define GPIO_ICR2_ICR27_SHIFT                    (22U)
+/*! ICR27 - ICR27
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR27(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR27_SHIFT)) & GPIO_ICR2_ICR27_MASK)
+
+#define GPIO_ICR2_ICR28_MASK                     (0x3000000U)
+#define GPIO_ICR2_ICR28_SHIFT                    (24U)
+/*! ICR28 - ICR28
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR28(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR28_SHIFT)) & GPIO_ICR2_ICR28_MASK)
+
+#define GPIO_ICR2_ICR29_MASK                     (0xC000000U)
+#define GPIO_ICR2_ICR29_SHIFT                    (26U)
+/*! ICR29 - ICR29
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR29(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR29_SHIFT)) & GPIO_ICR2_ICR29_MASK)
+
+#define GPIO_ICR2_ICR30_MASK                     (0x30000000U)
+#define GPIO_ICR2_ICR30_SHIFT                    (28U)
+/*! ICR30 - ICR30
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR30(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR30_SHIFT)) & GPIO_ICR2_ICR30_MASK)
+
+#define GPIO_ICR2_ICR31_MASK                     (0xC0000000U)
+#define GPIO_ICR2_ICR31_SHIFT                    (30U)
+/*! ICR31 - ICR31
+ *  0b00..Interrupt n is low-level sensitive.
+ *  0b01..Interrupt n is high-level sensitive.
+ *  0b10..Interrupt n is rising-edge sensitive.
+ *  0b11..Interrupt n is falling-edge sensitive.
+ */
+#define GPIO_ICR2_ICR31(x)                       (((uint32_t)(((uint32_t)(x)) << GPIO_ICR2_ICR31_SHIFT)) & GPIO_ICR2_ICR31_MASK)
+/*! @} */
+
+/*! @name IMR - GPIO interrupt mask register */
+/*! @{ */
+
+#define GPIO_IMR_IMR_MASK                        (0xFFFFFFFFU)
+#define GPIO_IMR_IMR_SHIFT                       (0U)
+/*! IMR - IMR
+ */
+#define GPIO_IMR_IMR(x)                          (((uint32_t)(((uint32_t)(x)) << GPIO_IMR_IMR_SHIFT)) & GPIO_IMR_IMR_MASK)
+/*! @} */
+
+/*! @name ISR - GPIO interrupt status register */
+/*! @{ */
+
+#define GPIO_ISR_ISR_MASK                        (0xFFFFFFFFU)
+#define GPIO_ISR_ISR_SHIFT                       (0U)
+/*! ISR - ISR
+ */
+#define GPIO_ISR_ISR(x)                          (((uint32_t)(((uint32_t)(x)) << GPIO_ISR_ISR_SHIFT)) & GPIO_ISR_ISR_MASK)
+/*! @} */
+
+/*! @name EDGE_SEL - GPIO edge select register */
+/*! @{ */
+
+#define GPIO_EDGE_SEL_GPIO_EDGE_SEL_MASK         (0xFFFFFFFFU)
+#define GPIO_EDGE_SEL_GPIO_EDGE_SEL_SHIFT        (0U)
+/*! GPIO_EDGE_SEL - GPIO_EDGE_SEL
+ */
+#define GPIO_EDGE_SEL_GPIO_EDGE_SEL(x)           (((uint32_t)(((uint32_t)(x)) << GPIO_EDGE_SEL_GPIO_EDGE_SEL_SHIFT)) & GPIO_EDGE_SEL_GPIO_EDGE_SEL_MASK)
+/*! @} */
+
+/*! @name DR_SET - GPIO data register SET */
+/*! @{ */
+
+#define GPIO_DR_SET_DR_SET_MASK                  (0xFFFFFFFFU)
+#define GPIO_DR_SET_DR_SET_SHIFT                 (0U)
+/*! DR_SET - DR_SET
+ */
+#define GPIO_DR_SET_DR_SET(x)                    (((uint32_t)(((uint32_t)(x)) << GPIO_DR_SET_DR_SET_SHIFT)) & GPIO_DR_SET_DR_SET_MASK)
+/*! @} */
+
+/*! @name DR_CLEAR - GPIO data register CLEAR */
+/*! @{ */
+
+#define GPIO_DR_CLEAR_DR_CLEAR_MASK              (0xFFFFFFFFU)
+#define GPIO_DR_CLEAR_DR_CLEAR_SHIFT             (0U)
+/*! DR_CLEAR - DR_CLEAR
+ */
+#define GPIO_DR_CLEAR_DR_CLEAR(x)                (((uint32_t)(((uint32_t)(x)) << GPIO_DR_CLEAR_DR_CLEAR_SHIFT)) & GPIO_DR_CLEAR_DR_CLEAR_MASK)
+/*! @} */
+
+/*! @name DR_TOGGLE - GPIO data register TOGGLE */
+/*! @{ */
+
+#define GPIO_DR_TOGGLE_DR_TOGGLE_MASK            (0xFFFFFFFFU)
+#define GPIO_DR_TOGGLE_DR_TOGGLE_SHIFT           (0U)
+/*! DR_TOGGLE - DR_TOGGLE
+ */
+#define GPIO_DR_TOGGLE_DR_TOGGLE(x)              (((uint32_t)(((uint32_t)(x)) << GPIO_DR_TOGGLE_DR_TOGGLE_SHIFT)) & GPIO_DR_TOGGLE_DR_TOGGLE_MASK)
+/*! @} */
+
+
+/*!
+ * @}
+ */ /* end of group GPIO_Register_Masks */
+
+
+/* GPIO - Peripheral instance base addresses */
+/** Peripheral GPIO1 base address */
+#define GPIO1_BASE                               (0x401B8000u)
+/** Peripheral GPIO1 base pointer */
+#define GPIO1                                    ((GPIO_Type *)GPIO1_BASE)
+/** Peripheral GPIO2 base address */
+#define GPIO2_BASE                               (0x401BC000u)
+/** Peripheral GPIO2 base pointer */
+#define GPIO2                                    ((GPIO_Type *)GPIO2_BASE)
+/** Peripheral GPIO3 base address */
+#define GPIO3_BASE                               (0x401C0000u)
+/** Peripheral GPIO3 base pointer */
+#define GPIO3                                    ((GPIO_Type *)GPIO3_BASE)
+/** Peripheral GPIO4 base address */
+#define GPIO4_BASE                               (0x401C4000u)
+/** Peripheral GPIO4 base pointer */
+#define GPIO4                                    ((GPIO_Type *)GPIO4_BASE)
+/** Peripheral GPIO5 base address */
+#define GPIO5_BASE                               (0x400C0000u)
+/** Peripheral GPIO5 base pointer */
+#define GPIO5                                    ((GPIO_Type *)GPIO5_BASE)
+/** Peripheral GPIO6 base address */
+#define GPIO6_BASE                               (0x42000000u)
+/** Peripheral GPIO6 base pointer */
+#define GPIO6                                    ((GPIO_Type *)GPIO6_BASE)
+/** Peripheral GPIO7 base address */
+#define GPIO7_BASE                               (0x42004000u)
+/** Peripheral GPIO7 base pointer */
+#define GPIO7                                    ((GPIO_Type *)GPIO7_BASE)
+/** Peripheral GPIO8 base address */
+#define GPIO8_BASE                               (0x42008000u)
+/** Peripheral GPIO8 base pointer */
+#define GPIO8                                    ((GPIO_Type *)GPIO8_BASE)
+/** Peripheral GPIO9 base address */
+#define GPIO9_BASE                               (0x4200C000u)
+/** Peripheral GPIO9 base pointer */
+#define GPIO9                                    ((GPIO_Type *)GPIO9_BASE)
+/** Array initializer of GPIO peripheral base addresses */
+#define GPIO_BASE_ADDRS                          { 0u, GPIO1_BASE, GPIO2_BASE, GPIO3_BASE, GPIO4_BASE, GPIO5_BASE, GPIO6_BASE, GPIO7_BASE, GPIO8_BASE, GPIO9_BASE }
+/** Array initializer of GPIO peripheral base pointers */
+#define GPIO_BASE_PTRS                           { (GPIO_Type *)0u, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7, GPIO8, GPIO9 }
+/** Interrupt vectors for the GPIO peripheral type */
+#define GPIO_IRQS                                { NotAvail_IRQn, GPIO1_INT0_IRQn, GPIO1_INT1_IRQn, GPIO1_INT2_IRQn, GPIO1_INT3_IRQn, GPIO1_INT4_IRQn, GPIO1_INT5_IRQn, GPIO1_INT6_IRQn, GPIO1_INT7_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn, NotAvail_IRQn }
+#define GPIO_COMBINED_LOW_IRQS                   { NotAvail_IRQn, GPIO1_Combined_0_15_IRQn, GPIO2_Combined_0_15_IRQn, GPIO3_Combined_0_15_IRQn, GPIO4_Combined_0_15_IRQn, GPIO5_Combined_0_15_IRQn, GPIO6_7_8_9_IRQn, GPIO6_7_8_9_IRQn, GPIO6_7_8_9_IRQn, GPIO6_7_8_9_IRQn }
+#define GPIO_COMBINED_HIGH_IRQS                  { NotAvail_IRQn, GPIO1_Combined_16_31_IRQn, GPIO2_Combined_16_31_IRQn, GPIO3_Combined_16_31_IRQn, GPIO4_Combined_16_31_IRQn, GPIO5_Combined_16_31_IRQn, GPIO6_7_8_9_IRQn, GPIO6_7_8_9_IRQn, GPIO6_7_8_9_IRQn, GPIO6_7_8_9_IRQn }
+
+/*!
+ * @}
+ */ /* end of group GPIO_Peripheral_Access_Layer */
+
+
 
 #endif /* APPLICATIONS_NGRMSENSORSOURCE_SOURCE_SPI3DMA_H_ */
 

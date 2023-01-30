@@ -129,6 +129,30 @@ void InitSPI3Peripheral()
 }
 
 /**
+ *
+ */
+void ConfigureDMAMux8()
+{
+	edma_tcd_t *toggleTCD;
+	DMA_Type *dmaBASE = DMA0;
+	static uint32_t gpioPin = 1<<15;
+
+    /* Configure toggle EDMA transfer channel 8*/
+	toggleTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[8];
+	EDMATcdReset(toggleTCD);
+	toggleTCD->SADDR = (uint32_t)&(gpioPin); // our source address is the SPI3 Rx register
+	toggleTCD->SOFF = 0;            // source address offset set to zero as it does not change
+	toggleTCD->DADDR = (uint32_t)&(GPIO3->DR_TOGGLE); // where the gpioPIN value will be placed
+	toggleTCD->DOFF = 0;            // each destination address write will increment by 1 byte
+	toggleTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	toggleTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	toggleTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	toggleTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+
+	dmaBASE->SERQ = 8; // enable DMA operations
+}
+
+/**
  * Initialize the XBAR singa will be read GPIO_SD_B0_00 Arduino Interface J17-6
  * Mirror that output GPIO_SD_B0_02 to J17-4
  * DMA IO GPIO_SD_B0_03 J17-5
@@ -143,6 +167,22 @@ void InitXBAR()
 	// refer to Ref Manual, page 1147&1148, section 14.7.23
 	// CCM Clock Gating Register 2 (CCM_CCGR5) bits 23..22
 	CCM->CCGR2 |= 0x00C00000;
+
+	// iomuxc_snvs_gpr_clk_enable
+	// refer to Ref Manual, page 1148&1149, section 14.7.24
+	// CCM Clock Gating Register 2 (CCM_CCGR3) bits 31...30
+	CCM->CCGR3 |= 0xC0000000;
+
+	// iomuxc_snvs_clk_enable
+	// refer to Ref Manual, page 1147&1148, section 14.7.23
+	// CCM Clock Gating Register 2 (CCM_CCGR2) bits 5...4
+	CCM->CCGR2 |= 0x0030;
+
+	// iomuxc_gpr_clk_enable (bits 5..4) and iomuxc_clk_enable (bits 3..2)
+	// refer to Ref Manual, page 1149&1150, section 14.7.25
+	// CCM Clock Gating Register 4 bits 5...4 & 3..2
+	CCM->CCGR4 |= 0x003C;
+
 
 	IOMUXC_GPR->GPR6 &= ~IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4_MASK;         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
 	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
@@ -164,6 +204,10 @@ void InitXBAR()
 	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
     XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4
 
+    GPIO3->GDIR |= 0xC000;
+    GPIO3->ICR1 = 0x03000000; // ICR12 falling edge
+
+    ConfigureDMAMux8();
 }
 
 /**
