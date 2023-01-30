@@ -24,6 +24,7 @@ extern void InitClocks();
 extern void InitSPI3Peripheral();
 extern void TxTest();
 extern void SingleDMATxTest();
+extern void XBARTest();
 
 /*******************************************************************************
  * Code
@@ -63,6 +64,10 @@ int main(void)
         case '3':
         	// trigger 25 byte DMA transfer with CS on each byte
         	SingleDMATxTest();
+        	break;
+        case '4':
+        	// XBAR test
+        	XBARTest();
         	break;
 
         }

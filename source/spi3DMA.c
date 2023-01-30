@@ -128,7 +128,47 @@ void InitSPI3Peripheral()
 	InitDMAandEDMA();
 }
 
+/**
+ * Initialize the XBAR singa will be read GPIO_SD_B0_00 Arduino Interface J17-6
+ * Mirror that output GPIO_SD_B0_02 to J17-4
+ * DMA IO GPIO_SD_B0_03 J17-5
+ *
+ */
+void InitXBAR()
+{
+#define ALT3 (3)
+#define CTL_PAD (0x1088) // SRE 0,DSE 1,SPEED 2,ODE 0,PKE 1,PUE 0, HYS 0
 
+	// start XBAR1 clocks
+	// refer to Ref Manual, page 1147&1148, section 14.7.23
+	// CCM Clock Gating Register 2 (CCM_CCGR5) bits 23..22
+	CCM->CCGR2 |= 0x00C00000;
+
+	IOMUXC_GPR->GPR6 &= ~IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4_MASK;         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
+	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
+	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = CTL_PAD;
+
+	IOMUXC_GPR->GPR6 |= IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_6_MASK;         // set XBAR_INOUT06 as an output Arduino pin  J17-4
+	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
+	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = CTL_PAD;
+
+//    IOMUXC_GPR_GPR6 &= ~(IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4);         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
+//    _CONFIG_PERIPHERAL(GPIO_SD_B0_00, XBAR1_INOUT04, PORT_DSE_MID);        // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
+//    IOMUXC_GPR_GPR6 |= (IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_6);          // set XBAR_INOUT06 as an output Arduino pin  J17-4
+//    _CONFIG_PERIPHERAL(GPIO_SD_B0_02, XBAR1_INOUT06, PORT_DSE_MID);        // select XBAR_INOUT06 on GPIO3_IO14 (GPIO_SD_B0_02) alt. function 3
+
+	// alternate CS pin Arduino pin  J17-5
+	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO15 (GPIO_SD_B0_03) alt. function 3
+	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = CTL_PAD;
+
+	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
+    XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4
+
+}
+
+/**
+ *
+ */
 void TxTest()
 {
 	uint8_t idx;
@@ -468,4 +508,12 @@ void SingleDMATxTest()
 
 	RestSPI3Peripheral(spi3_Tx_Buffer,spi3_Rx_Buffer);
 
+}
+
+/**
+ *
+ */
+void XBARTest()
+{
+	InitXBAR();
 }
