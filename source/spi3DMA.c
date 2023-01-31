@@ -10,6 +10,9 @@
 #include "spi3DMA.h"
 
 
+static volatile uint8_t tl_ClocksInitFlag = 1;
+static volatile uint8_t tl_PeripheralInitFlag = 1;
+
 void EDMATcdReset(edma_tcd_t *tcd)
 {
 
@@ -43,30 +46,34 @@ uint8_t spi3_Tx_Buffer[BUFFER_SIZE];
 
 void InitClocks()
 {
-	// start GPIO1 clocks
-	// refer to Ref Manual, page 1146&1147, section 14.7.22
-	// CCM Clock Gating Register 1 (CCM_CCGR1) bits 27..26
-	CCM->CCGR1 |= 0x03000000;
+	if( tl_ClocksInitFlag )
+	{
+		// start GPIO1 clocks
+		// refer to Ref Manual, page 1146&1147, section 14.7.22
+		// CCM Clock Gating Register 1 (CCM_CCGR1) bits 27..26
+		CCM->CCGR1 |= 0x03000000;
 
-	// start GPIO2 clocks
-	// refer to Ref Manual, page 1144&1145, section 14.7.21
-	// CCM Clock Gating Register 1 (CCM_CCGR1) bits 31..30
-	CCM->CCGR1 |= 0xC0000000;
+		// start GPIO2 clocks
+		// refer to Ref Manual, page 1144&1145, section 14.7.21
+		// CCM Clock Gating Register 1 (CCM_CCGR1) bits 31..30
+		CCM->CCGR1 |= 0xC0000000;
 
-	// start GPIO3 clocks
-	// refer to Ref Manual, page 1147&1148, section 14.7.23
-	// CCM Clock Gating Register 2 (CCM_CCGR1) bits 27..26
-	CCM->CCGR2 |= 0x03000000;
+		// start GPIO3 clocks
+		// refer to Ref Manual, page 1147&1148, section 14.7.23
+		// CCM Clock Gating Register 2 (CCM_CCGR1) bits 27..26
+		CCM->CCGR2 |= 0x03000000;
 
-	// start XBAR1 clocks
-	// refer to Ref Manual, page 1147&1148, section 14.7.23
-	// CCM Clock Gating Register 2 (CCM_CCGR2) bits 23..22
-	CCM->CCGR2 |= 0x00C00000;
+		// start XBAR1 clocks
+		// refer to Ref Manual, page 1147&1148, section 14.7.23
+		// CCM Clock Gating Register 2 (CCM_CCGR2) bits 23..22
+		CCM->CCGR2 |= 0x00C00000;
 
-	// start SPI3 clocks
-	// refer to Ref Manual, page 1146&1147, section 14.7.22
-	// CCM Clock Gating Register 1 (CCM_CCGR1) bits 5..4
-	CCM->CCGR1 |= 0x00000030;
+		// start SPI3 clocks
+		// refer to Ref Manual, page 1146&1147, section 14.7.22
+		// CCM Clock Gating Register 1 (CCM_CCGR1) bits 5..4
+		CCM->CCGR1 |= 0x00000030;
+		tl_ClocksInitFlag = 0;
+	}
 }
 
 
@@ -100,32 +107,37 @@ void InitDMAandEDMA()
  */
 void InitSPI3Peripheral()
 {
+	if( tl_PeripheralInitFlag )
+	{
 #define ALT2 (2)
 #define ALT5 (5)
 #define ALT7 (7)
 #define CTL_PAD (0x1088) // SRE 0,DSE 1,SPEED 2,ODE 0,PKE 1,PUE 0, HYS 0
-	// GPIO_AD_B0_03 LPSP3 CS0
-	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_03] = ALT7;
-	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_03] = CTL_PAD;
-	// GPIO_AD_B0_00 LPSPI3 CLK
-	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_00] = ALT7;
-	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_00] = CTL_PAD;
-	// GPIO_AD_B0_02 LPSPI3 MISO
-	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_02] = ALT7;
-	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_02] = CTL_PAD;
-	// GPIO_AD_B1_14 LPSPI3 MOSI
-	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_14] = ALT2;
-	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_14] = CTL_PAD;
+		// GPIO_AD_B0_03 LPSP3 CS0
+		IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_03] = ALT7;
+		IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_03] = CTL_PAD;
+		// GPIO_AD_B0_00 LPSPI3 CLK
+		IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_00] = ALT7;
+		IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_00] = CTL_PAD;
+		// GPIO_AD_B0_02 LPSPI3 MISO
+		IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_02] = ALT7;
+		IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B0_02] = CTL_PAD;
+		// GPIO_AD_B1_14 LPSPI3 MOSI
+		IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_14] = ALT2;
+		IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_14] = CTL_PAD;
 
-	LPSPI3->CR  = 0;  // disable
-	LPSPI3->CFGR1 = 1; // master mode
-	LPSPI3->CR  = 1;  // enable
-	LPSPI3->CR  = 0x305; // reset Rx FIFO, TX FIFO, debug en, enable
-	LPSPI3->CCR = 0x08082032; // SDK x8, PCS x8, DBT x20 DIV x32
-	LPSPI3->TCR = 0xC0000007; // CPOL 1, CPHA 1, PRE 1, PCS0, LSBF 0, BYSW 0, CONT 0, CONTC 0, RXMSK 0, TXMSK 0, WID 1, FRAME 8
-	LPSPI3->CR  = 0x05; // debug en, enable
+		LPSPI3->CR  = 0;  // disable
+		LPSPI3->CFGR1 = 1; // master mode
+		LPSPI3->CR  = 1;  // enable
+		LPSPI3->CR  = 0x305; // reset Rx FIFO, TX FIFO, debug en, enable
+		LPSPI3->CCR = 0x08082032; // SDK x8, PCS x8, DBT x20 DIV x32
+		LPSPI3->TCR = 0xC0000007; // CPOL 1, CPHA 1, PRE 1, PCS0, LSBF 0, BYSW 0, CONT 0, CONTC 0, RXMSK 0, TXMSK 0, WID 1, FRAME 8
+		LPSPI3->CR  = 0x05; // debug en, enable
 
-	InitDMAandEDMA();
+		InitDMAandEDMA();
+
+		tl_PeripheralInitFlag = 0;
+	}
 }
 
 /**
@@ -136,6 +148,10 @@ void ConfigureDMAMux8()
 	edma_tcd_t *toggleTCD;
 	DMA_Type *dmaBASE = DMA0;
 	static uint32_t gpioPin = 1<<15;
+
+	DMAMUX->CHCFG[8] = 0x0;
+	DMAMUX->CHCFG[8] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
+	DMAMUX->CHCFG[8] |= DMAMUX_CHCFG_ENBL_MASK; // enable
 
     /* Configure toggle EDMA transfer channel 8*/
 	toggleTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[8];
@@ -152,6 +168,9 @@ void ConfigureDMAMux8()
 	dmaBASE->SERQ = 8; // enable DMA operations
 }
 
+#define __disable_interrupt() asm("cpsid   i")
+#define __enable_interrupt()  asm("cpsie   i")
+
 /**
  * Initialize the XBAR singa will be read GPIO_SD_B0_00 Arduino Interface J17-6
  * Mirror that output GPIO_SD_B0_02 to J17-4
@@ -161,7 +180,9 @@ void ConfigureDMAMux8()
 void InitXBAR()
 {
 #define ALT3 (3)
+#define ALT5 (5)
 #define CTL_PAD (0x1088) // SRE 0,DSE 1,SPEED 2,ODE 0,PKE 1,PUE 0, HYS 0
+#define CTL_PAD_INPUT (0xF000) // (PORT_WITH_HYSTERESIS | PORT_PS_DOWN_ENABLE | PORT_PS_UP_ENABLE)
 
 	// start XBAR1 clocks
 	// refer to Ref Manual, page 1147&1148, section 14.7.23
@@ -198,11 +219,12 @@ void InitXBAR()
 //    _CONFIG_PERIPHERAL(GPIO_SD_B0_02, XBAR1_INOUT06, PORT_DSE_MID);        // select XBAR_INOUT06 on GPIO3_IO14 (GPIO_SD_B0_02) alt. function 3
 
 	// alternate CS pin Arduino pin  J17-5
-	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO15 (GPIO_SD_B0_03) alt. function 3
+	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = ALT5;     // select GPIO output on GPIO3_IO15 (GPIO_SD_B0_03) alt. function 5
 	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = CTL_PAD;
 
 	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
     XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4
+    XBARA1->CTRL1 |= 0x0900; // DMA Enable for XBAR_OUT3 with Active falling edges, no IRQ
 
     GPIO3->GDIR |= 0xC000;
     GPIO3->ICR1 = 0x03000000; // ICR12 falling edge
@@ -219,6 +241,12 @@ void TxTest()
 	volatile uint32_t readValue;
 #define START ('0')
 #define END ('9'+1)
+
+	if(tl_PeripheralInitFlag | tl_ClocksInitFlag)
+	{
+		InitClocks();
+		InitSPI3Peripheral();
+	}
 	for(idx=START; idx < END; idx++ )
 	{
 		LPSPI3->TDR = idx;
@@ -526,12 +554,14 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	txTCD->DLAST_SGA = 0;
 
+	__disable_interrupt();
 
 	dmaBASE->SERQ = DMA_SERQ_SERQ(1); // eDMA starts transfer TX channel
 	dmaBASE->SERQ = DMA_SERQ_SERQ(0); // eDMA starts transfer RX channel
 
 
 	spiBASE->DER |= (LPSPI_DER_TDDE_MASK /*!< Transmit data DMA enable */ | LPSPI_DER_RDDE_MASK /*!< Receive data DMA enable */ );
+	__enable_interrupt();
 }
 
 /**
@@ -542,6 +572,13 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 void SingleDMATxTest()
 {
 	uint16_t idx;
+
+	if(tl_PeripheralInitFlag | tl_ClocksInitFlag)
+	{
+		InitClocks();
+		InitSPI3Peripheral();
+	}
+
 	for(idx=0;idx<BUFFER_SIZE;idx++)
 	{
 		spi3_Tx_Buffer[idx] = idx;
@@ -559,5 +596,11 @@ void SingleDMATxTest()
  */
 void XBARTest()
 {
+	if(tl_PeripheralInitFlag | tl_ClocksInitFlag)
+	{
+		InitClocks();
+		InitSPI3Peripheral();
+	}
+
 	InitXBAR();
 }
