@@ -41,8 +41,8 @@ void EDMATcdReset(edma_tcd_t *tcd)
 #define TRIGGER_DMA_TX_CHANNEL (2)
 #define TRIGGER_DMA_RX_CHANNEL (3)
 
-uint8_t spi3_Rx_Buffer[BUFFER_SIZE];
-uint8_t spi3_Tx_Buffer[BUFFER_SIZE];
+volatile uint8_t spi3_Rx_Buffer[BUFFER_SIZE];
+volatile uint8_t spi3_Tx_Buffer[BUFFER_SIZE];
 //static uint8_t spi3_Tx_Buffer[BUFFER_SIZE] = {0x41,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xa,0xb,0xc,0xd,0xe,0xf,0x10,0x12,0x13,0x14,0x15,0x16,0x17,0x18};
 
 void InitClocks()
@@ -504,6 +504,7 @@ void DMA_irq(void)
 	irqDmaCnt++;
 }
 
+volatile uint8_t byteBuffer[25];
 /**
  * This function follows the operations that the evkmimxrt1060_lpspi_edma_b2b_transfer_master SDK
  * example perform.
@@ -532,7 +533,7 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 
     /* For DMA transfer , we'd better not masked the transmit data and receive data in TCR since the transfer flow is
      * hard to controlled by software. */
-	spiBASE->TCR & ~(LPSPI_TCR_CONT_MASK | LPSPI_TCR_CONTC_MASK | LPSPI_TCR_BYSW_MASK | LPSPI_TCR_PCS_MASK);
+	spiBASE->TCR & ~(LPSPI_TCR_CONT_MASK | LPSPI_TCR_CONTC_MASK /*| LPSPI_TCR_BYSW_MASK*/ | LPSPI_TCR_PCS_MASK);
 	spiBASE->TCR |= ( 0xC0000000/* | LPSPI_TCR_CONT_MASK | LPSPI_TCR_BYSW_MASK*/ ) ;
 
     /* Configure rx EDMA transfer channel 0*/
@@ -540,9 +541,9 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	EDMATcdReset(rxTCD);
 	rxTCD->SADDR = (uint32_t)&(LPSPI3->RDR); // our source address is the SPI3 Rx register
 	rxTCD->SOFF = 0;            // source address offset set to zero as it does not change
-	rxTCD->DADDR = ptrRxBuffer; // where the RX data will be placed
+	rxTCD->DADDR = byteBuffer; // where the RX data will be placed
 	rxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
-	rxTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
 	rxTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	rxTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	rxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -594,12 +595,18 @@ void SingleDMATxTest()
 	for(idx=0;idx<BUFFER_SIZE;idx++)
 	{
 		spi3_Tx_Buffer[idx] = idx;
-		spi3_Rx_Buffer[idx] = 0x0;
+		spi3_Rx_Buffer[idx] = 0xA5;
 	}
 
 	spi3_Tx_Buffer[0] =  0x40  | 0x01; // read command to ADC
 
 	RestSPI3Peripheral(spi3_Tx_Buffer,spi3_Rx_Buffer);
+
+	for(idx=0;idx<BUFFER_SIZE;idx++)
+	{
+		spi3_Tx_Buffer[idx] = idx;
+		spi3_Rx_Buffer[idx] = 0xA5;
+	}
 
 }
 
