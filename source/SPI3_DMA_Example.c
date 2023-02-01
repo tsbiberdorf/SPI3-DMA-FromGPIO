@@ -52,6 +52,8 @@ int main(void)
 
         switch(ch)
         {
+        default:
+        	break;
         case '1':
         	// initialize all clocks needed in this project
         	InitClocks();

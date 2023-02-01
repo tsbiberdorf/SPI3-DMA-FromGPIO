@@ -8,6 +8,7 @@
 #include <stdint.h>
 //#include "config.h"
 #include "spi3DMA.h"
+#include "core_cm7.h"
 
 
 static volatile uint8_t tl_ClocksInitFlag = 1;
@@ -184,6 +185,8 @@ void InitXBAR()
 #define CTL_PAD (0x1088) // SRE 0,DSE 1,SPEED 2,ODE 0,PKE 1,PUE 0, HYS 0
 #define CTL_PAD_INPUT (0xF000) // (PORT_WITH_HYSTERESIS | PORT_PS_DOWN_ENABLE | PORT_PS_UP_ENABLE)
 
+	asm("cpsid   i");//__disable_interrupt();
+
 	// start XBAR1 clocks
 	// refer to Ref Manual, page 1147&1148, section 14.7.23
 	// CCM Clock Gating Register 2 (CCM_CCGR5) bits 23..22
@@ -204,13 +207,15 @@ void InitXBAR()
 	// CCM Clock Gating Register 4 bits 5...4 & 3..2
 	CCM->CCGR4 |= 0x003C;
 
+    XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4
+
 
 	IOMUXC_GPR->GPR6 &= ~IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4_MASK;         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
 	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
-	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = CTL_PAD;
+	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = CTL_PAD_INPUT;
 
 	IOMUXC_GPR->GPR6 |= IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_6_MASK;         // set XBAR_INOUT06 as an output Arduino pin  J17-4
-	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = ALT3;     // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
+	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = ALT3;     // select XBAR_INOUT06 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
 	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = CTL_PAD;
 
 //    IOMUXC_GPR_GPR6 &= ~(IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4);         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
@@ -222,14 +227,15 @@ void InitXBAR()
 	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = ALT5;     // select GPIO output on GPIO3_IO15 (GPIO_SD_B0_03) alt. function 5
 	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = CTL_PAD;
 
-	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
-    XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4
-    XBARA1->CTRL1 |= 0x0900; // DMA Enable for XBAR_OUT3 with Active falling edges, no IRQ
-
     GPIO3->GDIR |= 0xC000;
-    GPIO3->ICR1 = 0x03000000; // ICR12 falling edge
+//    GPIO3->ICR1 = 0x03000000; // ICR12 falling edge
 
-    ConfigureDMAMux8();
+//	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
+//    XBARA1->CTRL1 |= 0x0900; // DMA Enable for XBAR_OUT3 with Active falling edges, no IRQ
+//    ConfigureDMAMux8();
+
+	asm("cpsie   i");//__enable_interrupt();
+
 }
 
 /**
@@ -484,6 +490,10 @@ void RestartSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer,uint8_t CSC
 	}
 }
 
+void DMA0_DMA16_DriverIRQHandler()
+{
+	DMA_irq();
+}
 
 void DMA_irq(void)
 {
@@ -562,6 +572,8 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 
 	spiBASE->DER |= (LPSPI_DER_TDDE_MASK /*!< Transmit data DMA enable */ | LPSPI_DER_RDDE_MASK /*!< Receive data DMA enable */ );
 	__enable_interrupt();
+
+	NVIC_EnableIRQ(0);
 }
 
 /**

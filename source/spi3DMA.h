@@ -19,6 +19,215 @@
 #define     __IOM    volatile            /*! Defines 'read / write' structure member permissions */
 
 
+/* ----------------------------------------------------------------------------
+   -- Cortex M7 Core Configuration
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup Cortex_Core_Configuration Cortex M7 Core Configuration
+ * @{
+ */
+
+#define __MPU_PRESENT                  1         /**< Defines if an MPU is present or not */
+#define __ICACHE_PRESENT               1         /**< Defines if an ICACHE is present or not */
+#define __DCACHE_PRESENT               1         /**< Defines if an DCACHE is present or not */
+#define __DTCM_PRESENT                 1         /**< Defines if an DTCM is present or not */
+#define __NVIC_PRIO_BITS               4         /**< Number of priority bits implemented in the NVIC */
+#define __Vendor_SysTickConfig         0         /**< Vendor specific implementation of SysTickConfig is defined */
+#define __FPU_PRESENT                  1         /**< Defines if an FPU is present or not */
+
+
+/* ----------------------------------------------------------------------------
+   -- Interrupt vector numbers
+   ---------------------------------------------------------------------------- */
+
+/*!
+ * @addtogroup Interrupt_vector_numbers Interrupt vector numbers
+ * @{
+ */
+
+/** Interrupt Number Definitions */
+#define NUMBER_OF_INT_VECTORS 174                /**< Number of interrupts in the Vector table */
+
+typedef enum IRQn {
+  /* Auxiliary constants */
+  NotAvail_IRQn                = -128,             /**< Not available device specific interrupt */
+
+  /* Core interrupts */
+  NonMaskableInt_IRQn          = -14,              /**< Non Maskable Interrupt */
+  HardFault_IRQn               = -13,              /**< Cortex-M7 SV Hard Fault Interrupt */
+  MemoryManagement_IRQn        = -12,              /**< Cortex-M7 Memory Management Interrupt */
+  BusFault_IRQn                = -11,              /**< Cortex-M7 Bus Fault Interrupt */
+  UsageFault_IRQn              = -10,              /**< Cortex-M7 Usage Fault Interrupt */
+  SVCall_IRQn                  = -5,               /**< Cortex-M7 SV Call Interrupt */
+  DebugMonitor_IRQn            = -4,               /**< Cortex-M7 Debug Monitor Interrupt */
+  PendSV_IRQn                  = -2,               /**< Cortex-M7 Pend SV Interrupt */
+  SysTick_IRQn                 = -1,               /**< Cortex-M7 System Tick Interrupt */
+
+  /* Device specific interrupts */
+  DMA0_DMA16_IRQn              = 0,                /**< DMA channel 0/16 transfer complete */
+  DMA1_DMA17_IRQn              = 1,                /**< DMA channel 1/17 transfer complete */
+  DMA2_DMA18_IRQn              = 2,                /**< DMA channel 2/18 transfer complete */
+  DMA3_DMA19_IRQn              = 3,                /**< DMA channel 3/19 transfer complete */
+  DMA4_DMA20_IRQn              = 4,                /**< DMA channel 4/20 transfer complete */
+  DMA5_DMA21_IRQn              = 5,                /**< DMA channel 5/21 transfer complete */
+  DMA6_DMA22_IRQn              = 6,                /**< DMA channel 6/22 transfer complete */
+  DMA7_DMA23_IRQn              = 7,                /**< DMA channel 7/23 transfer complete */
+  DMA8_DMA24_IRQn              = 8,                /**< DMA channel 8/24 transfer complete */
+  DMA9_DMA25_IRQn              = 9,                /**< DMA channel 9/25 transfer complete */
+  DMA10_DMA26_IRQn             = 10,               /**< DMA channel 10/26 transfer complete */
+  DMA11_DMA27_IRQn             = 11,               /**< DMA channel 11/27 transfer complete */
+  DMA12_DMA28_IRQn             = 12,               /**< DMA channel 12/28 transfer complete */
+  DMA13_DMA29_IRQn             = 13,               /**< DMA channel 13/29 transfer complete */
+  DMA14_DMA30_IRQn             = 14,               /**< DMA channel 14/30 transfer complete */
+  DMA15_DMA31_IRQn             = 15,               /**< DMA channel 15/31 transfer complete */
+  DMA_ERROR_IRQn               = 16,               /**< DMA error interrupt channels 0-15 / 16-31 */
+  CTI0_ERROR_IRQn              = 17,               /**< CTI0_Error */
+  CTI1_ERROR_IRQn              = 18,               /**< CTI1_Error */
+  CORE_IRQn                    = 19,               /**< CorePlatform exception IRQ */
+  LPUART1_IRQn                 = 20,               /**< LPUART1 TX interrupt and RX interrupt */
+  LPUART2_IRQn                 = 21,               /**< LPUART2 TX interrupt and RX interrupt */
+  LPUART3_IRQn                 = 22,               /**< LPUART3 TX interrupt and RX interrupt */
+  LPUART4_IRQn                 = 23,               /**< LPUART4 TX interrupt and RX interrupt */
+  LPUART5_IRQn                 = 24,               /**< LPUART5 TX interrupt and RX interrupt */
+  LPUART6_IRQn                 = 25,               /**< LPUART6 TX interrupt and RX interrupt */
+  LPUART7_IRQn                 = 26,               /**< LPUART7 TX interrupt and RX interrupt */
+  LPUART8_IRQn                 = 27,               /**< LPUART8 TX interrupt and RX interrupt */
+  LPI2C1_IRQn                  = 28,               /**< LPI2C1 interrupt */
+  LPI2C2_IRQn                  = 29,               /**< LPI2C2 interrupt */
+  LPI2C3_IRQn                  = 30,               /**< LPI2C3 interrupt */
+  LPI2C4_IRQn                  = 31,               /**< LPI2C4 interrupt */
+  LPSPI1_IRQn                  = 32,               /**< LPSPI1 single interrupt vector for all sources */
+  LPSPI2_IRQn                  = 33,               /**< LPSPI2 single interrupt vector for all sources */
+  LPSPI3_IRQn                  = 34,               /**< LPSPI3 single interrupt vector for all sources */
+  LPSPI4_IRQn                  = 35,               /**< LPSPI4  single interrupt vector for all sources */
+  CAN1_IRQn                    = 36,               /**< CAN1 interrupt */
+  CAN2_IRQn                    = 37,               /**< CAN2 interrupt */
+  FLEXRAM_IRQn                 = 38,               /**< FlexRAM address out of range Or access hit IRQ */
+  KPP_IRQn                     = 39,               /**< Keypad nterrupt */
+  TSC_DIG_IRQn                 = 40,               /**< TSC interrupt */
+  GPR_IRQ_IRQn                 = 41,               /**< GPR interrupt */
+  LCDIF_IRQn                   = 42,               /**< LCDIF interrupt */
+  CSI_IRQn                     = 43,               /**< CSI interrupt */
+  PXP_IRQn                     = 44,               /**< PXP interrupt */
+  WDOG2_IRQn                   = 45,               /**< WDOG2 interrupt */
+  SNVS_HP_WRAPPER_IRQn         = 46,               /**< SRTC Consolidated Interrupt. Non TZ */
+  SNVS_HP_WRAPPER_TZ_IRQn      = 47,               /**< SRTC Security Interrupt. TZ */
+  SNVS_LP_WRAPPER_IRQn         = 48,               /**< ON-OFF button press shorter than 5 secs (pulse event) */
+  CSU_IRQn                     = 49,               /**< CSU interrupt */
+  DCP_IRQn                     = 50,               /**< DCP_IRQ interrupt */
+  DCP_VMI_IRQn                 = 51,               /**< DCP_VMI_IRQ interrupt */
+  Reserved68_IRQn              = 52,               /**< Reserved interrupt */
+  TRNG_IRQn                    = 53,               /**< TRNG interrupt */
+  SJC_IRQn                     = 54,               /**< SJC interrupt */
+  BEE_IRQn                     = 55,               /**< BEE interrupt */
+  SAI1_IRQn                    = 56,               /**< SAI1 interrupt */
+  SAI2_IRQn                    = 57,               /**< SAI1 interrupt */
+  SAI3_RX_IRQn                 = 58,               /**< SAI3 interrupt */
+  SAI3_TX_IRQn                 = 59,               /**< SAI3 interrupt */
+  SPDIF_IRQn                   = 60,               /**< SPDIF interrupt */
+  PMU_EVENT_IRQn               = 61,               /**< Brown-out event interrupt */
+  Reserved78_IRQn              = 62,               /**< Reserved interrupt */
+  TEMP_LOW_HIGH_IRQn           = 63,               /**< TempSensor low/high interrupt */
+  TEMP_PANIC_IRQn              = 64,               /**< TempSensor panic interrupt */
+  USB_PHY1_IRQn                = 65,               /**< USBPHY (UTMI0), Interrupt */
+  USB_PHY2_IRQn                = 66,               /**< USBPHY (UTMI1), Interrupt */
+  ADC1_IRQn                    = 67,               /**< ADC1 interrupt */
+  ADC2_IRQn                    = 68,               /**< ADC2 interrupt */
+  DCDC_IRQn                    = 69,               /**< DCDC interrupt */
+  Reserved86_IRQn              = 70,               /**< Reserved interrupt */
+  Reserved87_IRQn              = 71,               /**< Reserved interrupt */
+  GPIO1_INT0_IRQn              = 72,               /**< Active HIGH Interrupt from INT0 from GPIO */
+  GPIO1_INT1_IRQn              = 73,               /**< Active HIGH Interrupt from INT1 from GPIO */
+  GPIO1_INT2_IRQn              = 74,               /**< Active HIGH Interrupt from INT2 from GPIO */
+  GPIO1_INT3_IRQn              = 75,               /**< Active HIGH Interrupt from INT3 from GPIO */
+  GPIO1_INT4_IRQn              = 76,               /**< Active HIGH Interrupt from INT4 from GPIO */
+  GPIO1_INT5_IRQn              = 77,               /**< Active HIGH Interrupt from INT5 from GPIO */
+  GPIO1_INT6_IRQn              = 78,               /**< Active HIGH Interrupt from INT6 from GPIO */
+  GPIO1_INT7_IRQn              = 79,               /**< Active HIGH Interrupt from INT7 from GPIO */
+  GPIO1_Combined_0_15_IRQn     = 80,               /**< Combined interrupt indication for GPIO1 signal 0 throughout 15 */
+  GPIO1_Combined_16_31_IRQn    = 81,               /**< Combined interrupt indication for GPIO1 signal 16 throughout 31 */
+  GPIO2_Combined_0_15_IRQn     = 82,               /**< Combined interrupt indication for GPIO2 signal 0 throughout 15 */
+  GPIO2_Combined_16_31_IRQn    = 83,               /**< Combined interrupt indication for GPIO2 signal 16 throughout 31 */
+  GPIO3_Combined_0_15_IRQn     = 84,               /**< Combined interrupt indication for GPIO3 signal 0 throughout 15 */
+  GPIO3_Combined_16_31_IRQn    = 85,               /**< Combined interrupt indication for GPIO3 signal 16 throughout 31 */
+  GPIO4_Combined_0_15_IRQn     = 86,               /**< Combined interrupt indication for GPIO4 signal 0 throughout 15 */
+  GPIO4_Combined_16_31_IRQn    = 87,               /**< Combined interrupt indication for GPIO4 signal 16 throughout 31 */
+  GPIO5_Combined_0_15_IRQn     = 88,               /**< Combined interrupt indication for GPIO5 signal 0 throughout 15 */
+  GPIO5_Combined_16_31_IRQn    = 89,               /**< Combined interrupt indication for GPIO5 signal 16 throughout 31 */
+  FLEXIO1_IRQn                 = 90,               /**< FLEXIO1 interrupt */
+  FLEXIO2_IRQn                 = 91,               /**< FLEXIO2 interrupt */
+  WDOG1_IRQn                   = 92,               /**< WDOG1 interrupt */
+  RTWDOG_IRQn                  = 93,               /**< RTWDOG interrupt */
+  EWM_IRQn                     = 94,               /**< EWM interrupt */
+  CCM_1_IRQn                   = 95,               /**< CCM IRQ1 interrupt */
+  CCM_2_IRQn                   = 96,               /**< CCM IRQ2 interrupt */
+  GPC_IRQn                     = 97,               /**< GPC interrupt */
+  SRC_IRQn                     = 98,               /**< SRC interrupt */
+  Reserved115_IRQn             = 99,               /**< Reserved interrupt */
+  GPT1_IRQn                    = 100,              /**< GPT1 interrupt */
+  GPT2_IRQn                    = 101,              /**< GPT2 interrupt */
+  PWM1_0_IRQn                  = 102,              /**< PWM1 capture 0, compare 0, or reload 0 interrupt */
+  PWM1_1_IRQn                  = 103,              /**< PWM1 capture 1, compare 1, or reload 0 interrupt */
+  PWM1_2_IRQn                  = 104,              /**< PWM1 capture 2, compare 2, or reload 0 interrupt */
+  PWM1_3_IRQn                  = 105,              /**< PWM1 capture 3, compare 3, or reload 0 interrupt */
+  PWM1_FAULT_IRQn              = 106,              /**< PWM1 fault or reload error interrupt */
+  FLEXSPI2_IRQn                = 107,              /**< FlexSPI2 interrupt */
+  FLEXSPI_IRQn                 = 108,              /**< FlexSPI0 interrupt */
+  SEMC_IRQn                    = 109,              /**< Reserved interrupt */
+  USDHC1_IRQn                  = 110,              /**< USDHC1 interrupt */
+  USDHC2_IRQn                  = 111,              /**< USDHC2 interrupt */
+  USB_OTG2_IRQn                = 112,              /**< USBO2 USB OTG2 */
+  USB_OTG1_IRQn                = 113,              /**< USBO2 USB OTG1 */
+  ENET_IRQn                    = 114,              /**< ENET interrupt */
+  ENET_1588_Timer_IRQn         = 115,              /**< ENET_1588_Timer interrupt */
+  XBAR1_IRQ_0_1_IRQn           = 116,              /**< XBAR1 interrupt */
+  XBAR1_IRQ_2_3_IRQn           = 117,              /**< XBAR1 interrupt */
+  ADC_ETC_IRQ0_IRQn            = 118,              /**< ADCETC IRQ0 interrupt */
+  ADC_ETC_IRQ1_IRQn            = 119,              /**< ADCETC IRQ1 interrupt */
+  ADC_ETC_IRQ2_IRQn            = 120,              /**< ADCETC IRQ2 interrupt */
+  ADC_ETC_ERROR_IRQ_IRQn       = 121,              /**< ADCETC Error IRQ interrupt */
+  PIT_IRQn                     = 122,              /**< PIT interrupt */
+  ACMP1_IRQn                   = 123,              /**< ACMP interrupt */
+  ACMP2_IRQn                   = 124,              /**< ACMP interrupt */
+  ACMP3_IRQn                   = 125,              /**< ACMP interrupt */
+  ACMP4_IRQn                   = 126,              /**< ACMP interrupt */
+  Reserved143_IRQn             = 127,              /**< Reserved interrupt */
+  Reserved144_IRQn             = 128,              /**< Reserved interrupt */
+  ENC1_IRQn                    = 129,              /**< ENC1 interrupt */
+  ENC2_IRQn                    = 130,              /**< ENC2 interrupt */
+  ENC3_IRQn                    = 131,              /**< ENC3 interrupt */
+  ENC4_IRQn                    = 132,              /**< ENC4 interrupt */
+  TMR1_IRQn                    = 133,              /**< TMR1 interrupt */
+  TMR2_IRQn                    = 134,              /**< TMR2 interrupt */
+  TMR3_IRQn                    = 135,              /**< TMR3 interrupt */
+  TMR4_IRQn                    = 136,              /**< TMR4 interrupt */
+  PWM2_0_IRQn                  = 137,              /**< PWM2 capture 0, compare 0, or reload 0 interrupt */
+  PWM2_1_IRQn                  = 138,              /**< PWM2 capture 1, compare 1, or reload 0 interrupt */
+  PWM2_2_IRQn                  = 139,              /**< PWM2 capture 2, compare 2, or reload 0 interrupt */
+  PWM2_3_IRQn                  = 140,              /**< PWM2 capture 3, compare 3, or reload 0 interrupt */
+  PWM2_FAULT_IRQn              = 141,              /**< PWM2 fault or reload error interrupt */
+  PWM3_0_IRQn                  = 142,              /**< PWM3 capture 0, compare 0, or reload 0 interrupt */
+  PWM3_1_IRQn                  = 143,              /**< PWM3 capture 1, compare 1, or reload 0 interrupt */
+  PWM3_2_IRQn                  = 144,              /**< PWM3 capture 2, compare 2, or reload 0 interrupt */
+  PWM3_3_IRQn                  = 145,              /**< PWM3 capture 3, compare 3, or reload 0 interrupt */
+  PWM3_FAULT_IRQn              = 146,              /**< PWM3 fault or reload error interrupt */
+  PWM4_0_IRQn                  = 147,              /**< PWM4 capture 0, compare 0, or reload 0 interrupt */
+  PWM4_1_IRQn                  = 148,              /**< PWM4 capture 1, compare 1, or reload 0 interrupt */
+  PWM4_2_IRQn                  = 149,              /**< PWM4 capture 2, compare 2, or reload 0 interrupt */
+  PWM4_3_IRQn                  = 150,              /**< PWM4 capture 3, compare 3, or reload 0 interrupt */
+  PWM4_FAULT_IRQn              = 151,              /**< PWM4 fault or reload error interrupt */
+  ENET2_IRQn                   = 152,              /**< ENET2 interrupt */
+  ENET2_1588_Timer_IRQn        = 153,              /**< ENET2_1588_Timer interrupt */
+  CAN3_IRQn                    = 154,              /**< CAN3 interrupt */
+  Reserved171_IRQn             = 155,              /**< Reserved interrupt */
+  FLEXIO3_IRQn                 = 156,              /**< FLEXIO3 interrupt */
+  GPIO6_7_8_9_IRQn             = 157               /**< GPIO6, GPIO7, GPIO8, GPIO9 interrupt */
+} IRQn_Type;
+
+/*!
+ * @}
+ */ /* end of group Interrupt_vector_numbers */
 
 /*!
  * @brief Enumeration for the IOMUXC SW_MUX_CTL_PAD
