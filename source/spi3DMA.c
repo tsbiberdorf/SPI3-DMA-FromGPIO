@@ -602,11 +602,6 @@ void SingleDMATxTest()
 
 	RestSPI3Peripheral(spi3_Tx_Buffer,spi3_Rx_Buffer);
 
-	for(idx=0;idx<BUFFER_SIZE;idx++)
-	{
-		spi3_Tx_Buffer[idx] = idx;
-		spi3_Rx_Buffer[idx] = 0xA5;
-	}
 
 }
 
