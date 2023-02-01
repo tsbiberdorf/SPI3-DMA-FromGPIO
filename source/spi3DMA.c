@@ -3,6 +3,22 @@
  *
  *  Created on: Jan 18, 2023
  *      Author: TBiberdorf
+ *
+ * This code is using the SPI3 peripheral port on the MIMRT1060-EVKB development board.
+ *
+ * MOSI J23-23
+ * MISO J23-7
+ * CLK  J23-21
+ * CS   J23-22
+ *
+ * XBAR testing is using the input
+ * J17-6 GPIO_SD_B0_00
+ *
+ * echoing the level on this pin to
+ * J17-5 GPIO_SD_B0_03
+ * and usign a DMA option to toggle the pin
+ * J17-4 GPIO_SD_B0_02
+ *
  */
 
 #include <stdint.h>
@@ -504,6 +520,13 @@ void DMA_irq(void)
 	irqDmaCnt++;
 }
 
+/**
+ * @NOTE cannot confirm as to why the recieved data will not be placed correctly
+ * in the buffer that is passed in the the parameter call, but will work fine if
+ * stored to this memory buffer.
+ *
+ * Please explain????
+ */
 volatile uint8_t byteBuffer[25];
 /**
  * This function follows the operations that the evkmimxrt1060_lpspi_edma_b2b_transfer_master SDK
