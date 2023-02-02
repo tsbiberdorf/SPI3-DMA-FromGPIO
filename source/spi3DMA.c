@@ -157,13 +157,15 @@ void InitSPI3Peripheral()
 	}
 }
 
+#define CLEAR_CS_TCD (8)
+#define SET_CS_TCD (9)
 const uint32_t gpioPin = 1<<15;
 /**
  *
  */
 void ConfigureDMAMux8()
 {
-	edma_tcd_t *toggleTCD;
+	edma_tcd_t *clearTCD;
 	DMA_Type *dmaBASE = DMA0;
 //	static uint32_t gpioPin = 1<<15;
 
@@ -172,18 +174,46 @@ void ConfigureDMAMux8()
 	DMAMUX->CHCFG[8] |= DMAMUX_CHCFG_ENBL_MASK; // enable
 
     /* Configure toggle EDMA transfer channel 8*/
-	toggleTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[8];
-	EDMATcdReset(toggleTCD);
-	toggleTCD->SADDR = (uint32_t)&(gpioPin); // our source address is the SPI3 Rx register
-	toggleTCD->SOFF = 0;            // source address offset set to zero as it does not change
-	toggleTCD->DADDR = (uint32_t)&(GPIO3->DR_TOGGLE); // where the gpioPIN value will be placed
-	toggleTCD->DOFF = 0;            // each destination address write will increment by 1 byte
-	toggleTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
-	toggleTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
-	toggleTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
-	toggleTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
-	toggleTCD->CSR = 0;
-	dmaBASE->SERQ = 8; // enable DMA operations
+	clearTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[CLEAR_CS_TCD];
+	EDMATcdReset(clearTCD);
+	clearTCD->SADDR = (uint32_t)&(gpioPin); // our source address is the SPI3 Rx register
+	clearTCD->SOFF = 0;            // source address offset set to zero as it does not change
+	clearTCD->DADDR = (uint32_t)&(GPIO3->DR_CLEAR); // where the gpioPIN value will be placed
+	clearTCD->DOFF = 0;            // each destination address write will increment by 1 byte
+	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	clearTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	clearTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	clearTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	clearTCD->CSR = SET_CS_TCD<<8 | 1<<5; // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
+	dmaBASE->SERQ = CLEAR_CS_TCD; // enable DMA operations
+}
+
+/**
+ *
+ */
+void ConfigureDMAMux7()
+{
+	edma_tcd_t *setTCD;
+	DMA_Type *dmaBASE = DMA0;
+//	static uint32_t gpioPin = 1<<15;
+
+	DMAMUX->CHCFG[8] = 0x0;
+	DMAMUX->CHCFG[8] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
+	DMAMUX->CHCFG[8] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+    /* Configure toggle EDMA transfer channel 8*/
+	setTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[SET_CS_TCD];
+	EDMATcdReset(setTCD);
+	setTCD->SADDR = (uint32_t)&(gpioPin); // our source address is the SPI3 Rx register
+	setTCD->SOFF = 0;            // source address offset set to zero as it does not change
+	setTCD->DADDR = (uint32_t)&(GPIO3->DR_SET); // where the gpioPIN value will be placed
+	setTCD->DOFF = 0;            // each destination address write will increment by 1 byte
+	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	setTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	setTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	setTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	setTCD->CSR = 0;
+
 }
 
 #define __disable_interrupt() asm("cpsid   i")
@@ -255,6 +285,8 @@ void InitXBAR()
 
 	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
     XBARA1->CTRL1 |= 0x0900; // DMA Enable for XBAR_OUT3 with Active falling edges, no IRQ
+
+    ConfigureDMAMux7();
     ConfigureDMAMux8();
 
 }
