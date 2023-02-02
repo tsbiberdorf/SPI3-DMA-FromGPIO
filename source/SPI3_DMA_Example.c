@@ -71,6 +71,10 @@ int main(void)
         	// XBAR test
         	XBARTest();
         	break;
+        case '5':
+        	// trigger 25 byte DMA transfer with CS on each byte
+        	MultiDMATxTest();
+        	break;
 
         }
     }
