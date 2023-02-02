@@ -157,6 +157,7 @@ void InitSPI3Peripheral()
 	}
 }
 
+const uint32_t gpioPin = 1<<15;
 /**
  *
  */
@@ -164,7 +165,7 @@ void ConfigureDMAMux8()
 {
 	edma_tcd_t *toggleTCD;
 	DMA_Type *dmaBASE = DMA0;
-	static uint32_t gpioPin = 1<<15;
+//	static uint32_t gpioPin = 1<<15;
 
 	DMAMUX->CHCFG[8] = 0x0;
 	DMAMUX->CHCFG[8] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
@@ -181,7 +182,7 @@ void ConfigureDMAMux8()
 	toggleTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	toggleTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
 	toggleTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
-
+	toggleTCD->CSR = 0;
 	dmaBASE->SERQ = 8; // enable DMA operations
 }
 
@@ -200,8 +201,6 @@ void InitXBAR()
 #define ALT5 (5)
 #define CTL_PAD (0x1088) // SRE 0,DSE 1,SPEED 2,ODE 0,PKE 1,PUE 0, HYS 0
 #define CTL_PAD_INPUT (0xF000) // (PORT_WITH_HYSTERESIS | PORT_PS_DOWN_ENABLE | PORT_PS_UP_ENABLE)
-
-	asm("cpsid   i");//__disable_interrupt();
 
 	// start XBAR1 clocks
 	// refer to Ref Manual, page 1147&1148, section 14.7.23
@@ -223,7 +222,8 @@ void InitXBAR()
 	// CCM Clock Gating Register 4 bits 5...4 & 3..2
 	CCM->CCGR4 |= 0x003C;
 
-    XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4
+    XBARA1->SEL1 = 0x0400; // set Select 3 output to match input Select 4  This is what will be triggering the DMA action
+    XBARA1->SEL3 = 0x04;   // set Select 6 output to match input Select 4  This is a mirror of what is being read on GPIO_SD_B0_00
 
 
 	IOMUXC_GPR->GPR6 &= ~IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4_MASK;         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
@@ -231,26 +231,31 @@ void InitXBAR()
 	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_00] = CTL_PAD_INPUT;
 
 	IOMUXC_GPR->GPR6 |= IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_6_MASK;         // set XBAR_INOUT06 as an output Arduino pin  J17-4
+
+	/**
+	 * @note big NOTE here, the next two registers are buried in the manual
+	 * in sections:
+	 *      11.6.385 XBAR1_IN04_SELECT_INPUT DAISY
+	 *      11.6.387 XBAR1_IN06_SELECT_INPUT DAISY
+	 * starting near Page 901 of RM spec
+	 * these two MUX operations need to select the PADs that were using.
+	 */
+	*((uint32_t *)(IOMUXC_BASE+0x614)) = 0x1;
+	*((uint32_t *)(IOMUXC_BASE+0x61C)) = 0x1;
+
 	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = ALT3;     // select XBAR_INOUT06 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
 	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_02] = CTL_PAD;
-
-//    IOMUXC_GPR_GPR6 &= ~(IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_4);         // ensure XBAR_INOUT04 is an input Arduino pin  J17-6
-//    _CONFIG_PERIPHERAL(GPIO_SD_B0_00, XBAR1_INOUT04, PORT_DSE_MID);        // select XBAR_INOUT04 on GPIO3_IO12 (GPIO_SD_B0_00) alt. function 3
-//    IOMUXC_GPR_GPR6 |= (IOMUXC_GPR_GPR6_IOMUXC_XBAR_DIR_SEL_6);          // set XBAR_INOUT06 as an output Arduino pin  J17-4
-//    _CONFIG_PERIPHERAL(GPIO_SD_B0_02, XBAR1_INOUT06, PORT_DSE_MID);        // select XBAR_INOUT06 on GPIO3_IO14 (GPIO_SD_B0_02) alt. function 3
 
 	// alternate CS pin Arduino pin  J17-5
 	IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = ALT5;     // select GPIO output on GPIO3_IO15 (GPIO_SD_B0_03) alt. function 5
 	IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_SD_B0_03] = CTL_PAD;
 
     GPIO3->GDIR |= 0xC000;
-//    GPIO3->ICR1 = 0x03000000; // ICR12 falling edge
+    GPIO3->ICR1 = 0x03000000; // ICR12 falling edge
 
-//	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
-//    XBARA1->CTRL1 |= 0x0900; // DMA Enable for XBAR_OUT3 with Active falling edges, no IRQ
-//    ConfigureDMAMux8();
-
-	asm("cpsie   i");//__enable_interrupt();
+	XBARA1->SEL2 = 0x0400; // set Select 5 output to match input Select 4
+    XBARA1->CTRL1 |= 0x0900; // DMA Enable for XBAR_OUT3 with Active falling edges, no IRQ
+    ConfigureDMAMux8();
 
 }
 
@@ -288,6 +293,7 @@ static uint8_t volatile combineDMATriggerFlag = 1;
 static uint8_t volatile triggerTxERQ = 1;
 static uint8_t volatile triggerRxERQ = 1;
 
+#if 0
 void RestartSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer,uint8_t CSCont, uint8_t HardStartFlag)
 {
 	edma_tcd_t *rxTCD;
@@ -505,6 +511,7 @@ void RestartSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer,uint8_t CSC
 
 	}
 }
+#endif
 
 void DMA0_DMA16_DriverIRQHandler()
 {
@@ -564,7 +571,7 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	EDMATcdReset(rxTCD);
 	rxTCD->SADDR = (uint32_t)&(LPSPI3->RDR); // our source address is the SPI3 Rx register
 	rxTCD->SOFF = 0;            // source address offset set to zero as it does not change
-	rxTCD->DADDR = byteBuffer; // where the RX data will be placed
+	rxTCD->DADDR = ptrRxBuffer; // where the RX data will be placed
 	rxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
 	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
 	rxTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
