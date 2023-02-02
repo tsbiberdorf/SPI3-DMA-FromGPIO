@@ -241,19 +241,30 @@ void ConfigureDMAMux7()
     /* Configure toggle EDMA transfer channel 8*/
 	setTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[SET_CS_TCD];
 	EDMATcdReset(setTCD);
+	/*!< SADDR register, used to save source address */
 	setTCD->SADDR = (uint32_t)&(gpioPin); // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
 	setTCD->SOFF = 0;            // source address offset set to zero as it does not change
 	/*!< SLAST register */
 	setTCD->SLAST = 0; // number of bytes to change source address after completion
 
+	/*!< DADDR register, used for destination address */
 	setTCD->DADDR = (uint32_t)&(GPIO3->DR_SET); // where the gpioPIN value will be placed
+	/*!< DOFF register, used for destination offset */
 	setTCD->DOFF = 0;            // each destination address write will increment by 1 byte
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
 	setTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
+	/*!< ATTR register, source/destination transfer size and modulo */
 	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
 	setTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
 	setTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
 	setTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
 	setTCD->CSR = 0;
 
 }
@@ -272,18 +283,30 @@ void ConfigureDMAMux6()
     /* Configure toggle EDMA transfer channel 8*/
 	spi3TxTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[SPI3_TX_TCD];
 	EDMATcdReset(spi3TxTCD);
+	/*!< SADDR register, used to save source address */
 	spi3TxTCD->SADDR = spi3_Tx_Buffer; // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
 	spi3TxTCD->SOFF = 1;            // change our source back after completion
+	/*!< SLAST register */
 	spi3TxTCD->SLAST = -1;
 
+	/*!< DADDR register, used for destination address */
 	spi3TxTCD->DADDR = (uint32_t)&(LPSPI3->TDR); // where the gpioPIN value will be placed
+	/*!< DOFF register, used for destination offset */
 	spi3TxTCD->DOFF = 0;            // each destination address write will increment by 1 byte
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
 	spi3TxTCD->DLAST_SGA = 0;
 
+	/*!< ATTR register, source/destination transfer size and modulo */
 	spi3TxTCD->ATTR = 0x0;       // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
 	spi3TxTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
 	spi3TxTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
 	spi3TxTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
 	spi3TxTCD->CSR = SET_CS_TCD<<8 | 1<<5; // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
 
 }
