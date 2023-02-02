@@ -157,9 +157,17 @@ void InitSPI3Peripheral()
 	}
 }
 
-#define CLEAR_CS_TCD (8)
-#define SET_CS_TCD (9)
+#define CLEAR_CS_TCD (8) /**< useing channel 8 to set the bit */
+#define SET_CS_TCD (9) /**< using channel 9 to clear the bit */
+
+/**
+ * The GPIO has a SET/CLEAR register that works off a bit mask.
+ * In our case we want to change the state of GPIO3 IO15.  So we set
+ * a static variable with bit 15 set to be used to send to either the
+ * CLEAR or SET register.
+ */
 const uint32_t gpioPin = 1<<15;
+
 /**
  *
  */
@@ -168,7 +176,7 @@ void ConfigureDMAMux8()
 	edma_tcd_t *clearTCD;
 	DMA_Type *dmaBASE = DMA0;
 //	static uint32_t gpioPin = 1<<15;
-
+#define DELAY_BEFORE_NEXT_DMA_TRIGGER (4)
 	DMAMUX->CHCFG[8] = 0x0;
 	DMAMUX->CHCFG[8] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
 	DMAMUX->CHCFG[8] |= DMAMUX_CHCFG_ENBL_MASK; // enable
@@ -177,11 +185,11 @@ void ConfigureDMAMux8()
 	clearTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[CLEAR_CS_TCD];
 	EDMATcdReset(clearTCD);
 	clearTCD->SADDR = (uint32_t)&(gpioPin); // our source address is the SPI3 Rx register
-	clearTCD->SOFF = 0;            // source address offset set to zero as it does not change
+	clearTCD->SOFF = 0;                     // source address offset set to zero as it does not change
 	clearTCD->DADDR = (uint32_t)&(GPIO3->DR_CLEAR); // where the gpioPIN value will be placed
 	clearTCD->DOFF = 0;            // each destination address write will increment by 1 byte
 	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
-	clearTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	clearTCD->NBYTES = 4*DELAY_BEFORE_NEXT_DMA_TRIGGER;           // number of bytes in each minor loop transfer.
 	clearTCD->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
 	clearTCD->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
 	clearTCD->CSR = SET_CS_TCD<<8 | 1<<5; // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
@@ -663,8 +671,30 @@ void SingleDMATxTest()
 	spi3_Tx_Buffer[0] =  0x40  | 0x01; // read command to ADC
 
 	RestSPI3Peripheral(spi3_Tx_Buffer,spi3_Rx_Buffer);
+}
 
+/**
+ * Modify the SPI DMA operations to now only need
+ */
+MultiDMATxTest()
+{
+	uint16_t idx;
 
+	if(tl_PeripheralInitFlag | tl_ClocksInitFlag)
+	{
+		InitClocks();
+		InitSPI3Peripheral();
+	}
+
+	for(idx=0;idx<BUFFER_SIZE;idx++)
+	{
+		spi3_Tx_Buffer[idx] = idx;
+		spi3_Rx_Buffer[idx] = 0xA5;
+	}
+
+	spi3_Tx_Buffer[0] =  0x40  | 0x01; // read command to ADC
+
+	RestSPI3Peripheral(spi3_Tx_Buffer,spi3_Rx_Buffer);
 }
 
 /**
