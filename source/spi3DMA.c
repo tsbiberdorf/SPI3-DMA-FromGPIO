@@ -14,9 +14,9 @@
  * XBAR testing is using the input
  * J17-6 GPIO_SD_B0_00
  *
- * echoing the level on this pin to
+ * mirror the level on this pin to verify that its connected and working
  * J17-5 GPIO_SD_B0_03
- * and usign a DMA option to toggle the pin
+ * and using a DMA option of XBAR1 out3 to set/clear/toggle this pin
  * J17-4 GPIO_SD_B0_02
  *
  */
@@ -57,11 +57,19 @@ void EDMATcdReset(edma_tcd_t *tcd)
     tcd->BITER = 0U;
 }
 
+#define __disable_interrupt() asm("cpsid   i")
+#define __enable_interrupt()  asm("cpsie   i")
+
 #define BUFFER_SIZE (25)
 #define TRANSFER_SIZE     25U     /* Transfer dataSize */
 
-#define LPSPI_MASTER_DMA_RX_CHANNEL (0)
-#define LPSPI_MASTER_DMA_TX_CHANNEL (1)
+#define LPSPI_MASTER_DMA_RX_CHANNEL (0) /**< to replicate the SDK example */
+#define LPSPI_MASTER_DMA_TX_CHANNEL (1) /**< to replicate the SDK example */
+
+#define CLEAR_CS_TCD (8) /**< using channel 8 to set the bit */
+#define SET_CS_TCD (7) /**< using channel 7 to clear the bit */
+#define SPI3_TX_TCD (6) /**< using channel 6 to TX SPI3 data */
+#define SPI3_RX_TCD (5) /**< using channel 5 to RX SPI3 data */
 
 #define TRIGGER_DMA_TX_CHANNEL (2)
 #define TRIGGER_DMA_RX_CHANNEL (3)
@@ -70,6 +78,9 @@ volatile uint8_t spi3_Rx_Buffer[BUFFER_SIZE];
 volatile uint8_t spi3_Tx_Buffer[BUFFER_SIZE];
 //static uint8_t spi3_Tx_Buffer[BUFFER_SIZE] = {0x41,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xa,0xb,0xc,0xd,0xe,0xf,0x10,0x12,0x13,0x14,0x15,0x16,0x17,0x18};
 
+/**
+ * Initialize all the clocks needed
+ */
 void InitClocks()
 {
 	if( tl_ClocksInitFlag )
@@ -118,14 +129,6 @@ void InitDMAandEDMA()
 	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = 0x0;
 	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = kDmaRequestMuxLPSPI3Tx;  // set SPI3 TX
 	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-
-//	DMAMUX->CHCFG[TRIGGER_DMA_TX_CHANNEL] = 0x0;
-//	DMAMUX->CHCFG[TRIGGER_DMA_TX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-//
-//	DMAMUX->CHCFG[TRIGGER_DMA_RX_CHANNEL] = 0x0;
-//	DMAMUX->CHCFG[TRIGGER_DMA_RX_CHANNEL] |= DMAMUX_CHCFG_ENBL_MASK; // enable
-
-
 }
 
 /**
@@ -171,11 +174,6 @@ void InitSPI3Peripheral()
 		tl_PeripheralInitFlag = 0;
 	}
 }
-
-#define CLEAR_CS_TCD (8) /**< useing channel 8 to set the bit */
-#define SET_CS_TCD (7) /**< using channel 7 to clear the bit */
-#define SPI3_TX_TCD (6) /**< using channel 6 to TX SPI3 data */
-#define SPI3_RX_TCD (5) /**< using channel 5 to RX SPI3 data */
 
 /**
  * The GPIO has a SET/CLEAR register that works off a bit mask.
@@ -276,12 +274,17 @@ void ConfigureDMAMux7()
 }
 
 /**
- * SPI TX DMA transfer
+ * Configure SPI TX DMA transfer using channel SPI3_TX_TCD
  */
 void ConfigureDMAMux6()
 {
 	edma_tcd_t *spi3TxTCD;
 	DMA_Type *dmaBASE = DMA0;
+
+	/* to remove any possible issue with other testing that may have been done */
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_RX_CHANNEL] = 0x0;
+	DMAMUX->CHCFG[LPSPI_MASTER_DMA_TX_CHANNEL] = 0x0;
+
 
 	DMAMUX->CHCFG[SPI3_TX_TCD] = kDmaRequestMuxLPSPI3Tx;
 	DMAMUX->CHCFG[SPI3_TX_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
@@ -317,7 +320,7 @@ void ConfigureDMAMux6()
 }
 
 /**
- * SPI RX DMA transfer
+ * configure SPI RX DMA transfer using DMA channel SPI3_RX_TCD
  */
 void ConfigureDMAMux5()
 {
@@ -347,7 +350,7 @@ void ConfigureDMAMux5()
 }
 
 /**
- *
+ * configure LPSPI3 peripheral for DMA operations
  */
 void ConfigureSPI3Peripheral()
 {
@@ -375,9 +378,6 @@ void ConfigureSPI3Peripheral()
 	spiBASE->DER |= (LPSPI_DER_TDDE_MASK /*!< Transmit data DMA enable */ | LPSPI_DER_RDDE_MASK /*!< Receive data DMA enable */ );
 
 }
-
-#define __disable_interrupt() asm("cpsid   i")
-#define __enable_interrupt()  asm("cpsie   i")
 
 /**
  * Initialize the XBAR singa will be read GPIO_SD_B0_00 Arduino Interface J17-6
