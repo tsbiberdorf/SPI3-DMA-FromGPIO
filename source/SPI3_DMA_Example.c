@@ -68,12 +68,12 @@ int main(void)
         	SingleDMATxTest();
         	break;
         case '4':
-        	// XBAR test
-        	XBARTest();
-        	break;
-        case '5':
         	// trigger 25 byte DMA transfer with CS on each byte
         	MultiDMATxTest();
+        	break;
+        case '5':
+        	// XBAR test
+        	XBARTest();
         	break;
 
         }
