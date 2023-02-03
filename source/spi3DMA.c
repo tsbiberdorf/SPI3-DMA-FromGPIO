@@ -130,6 +130,12 @@ void InitDMAandEDMA()
 
 /**
  * Initialize the SPI3 port to support CS0
+ * The following pins are configured and where they are mapped to on the EVKB board
+ * J23-22   GPIO_AD_B0_03      LPSP3 CS0
+ * J23-21   GPIO_AD_B0_00      LPSPI3 CLK
+ * J32-23   GPIO_AD_B1_14      LPSPI3 MOSI
+ * J23-7    GPIO_AD_B0_02      LPSPI3 MISO
+ *
  */
 void InitSPI3Peripheral()
 {
