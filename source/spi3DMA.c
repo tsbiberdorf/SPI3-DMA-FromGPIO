@@ -277,7 +277,7 @@ void ConfigureDMAMux6()
 	edma_tcd_t *spi3TxTCD;
 	DMA_Type *dmaBASE = DMA0;
 
-	DMAMUX->CHCFG[SPI3_TX_TCD] = 0x0;
+	DMAMUX->CHCFG[SPI3_TX_TCD] = kDmaRequestMuxLPSPI3Tx;
 	DMAMUX->CHCFG[SPI3_TX_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
 
     /* Configure toggle EDMA transfer channel 8*/
@@ -318,7 +318,7 @@ void ConfigureDMAMux5()
 	edma_tcd_t *spi3RxTCD;
 	DMA_Type *dmaBASE = DMA0;
 
-	DMAMUX->CHCFG[SPI3_RX_TCD] = 0x0;
+	DMAMUX->CHCFG[SPI3_RX_TCD] = kDmaRequestMuxLPSPI3Rx;
 	DMAMUX->CHCFG[SPI3_RX_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
 
     /* Configure toggle EDMA transfer channel 8*/
