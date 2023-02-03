@@ -831,6 +831,9 @@ void MultiLoopSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 		/*!< DOFF register, used for destination offset */
 		rxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
 		/*!< ATTR register, source/destination transfer size and modulo */
+		/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
+		rxTCD->DLAST_SGA = (-1*BUFFER_SIZE); // change to make to destination address after transfer completed
+
 		rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
 		/*!< Nbytes register, minor loop length in bytes */
 		rxTCD->NBYTES = 1;  // number of bytes in each minor loop transfer.
@@ -838,8 +841,6 @@ void MultiLoopSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 		rxTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 		/*!< BITER register, begin minor loop count. */
 		rxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
-		/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
-		rxTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 		/*!< CSR register, for TCD control status */
 		// in our case will will trigger a IRQ when the major cycle count completes
@@ -851,7 +852,7 @@ void MultiLoopSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 
 		txTCD->SADDR = ptrTxBuffer;  // our source buffer address to start reading from
 		txTCD->SOFF = 1;            // source address offset set to 1 to increment by one byte per transfer
-		txTCD->SLAST = -1;            // source address offset set to 1 to increment by one byte per transfer
+		txTCD->SLAST = (-1*BUFFER_SIZE);            // source address offset set to 1 to increment by one byte per transfer
 
 		txTCD->DADDR = (uint32_t)&(LPSPI3->TDR); // where the TX data will be placed SPI3 Tx Register
 		txTCD->DOFF = 0;            // each destination address is a hardware registers, so we will not increment it
