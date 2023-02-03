@@ -25,6 +25,7 @@ extern void InitSPI3Peripheral();
 extern void TxTest();
 extern void SingleDMATxTest();
 extern void XBARTest();
+extern void XBARWithSPIDMA();
 
 /*******************************************************************************
  * Code
@@ -74,6 +75,10 @@ int main(void)
         case '5':
         	// XBAR test
         	XBARTest();
+        	break;
+        case '6':
+        	// XBAR with SPI DMA test
+        	XBARWithSPIDMA();
         	break;
 
         }
