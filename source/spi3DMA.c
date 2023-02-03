@@ -307,7 +307,7 @@ void ConfigureDMAMux6()
 	spi3TxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 
 	/*!< CSR register, for TCD control status */
-	spi3TxTCD->CSR = SET_CS_TCD<<8 | 1<<5 | DMA_CSR_DREQ(1); // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
+	spi3TxTCD->CSR = SET_CS_TCD<<8 | 1<<5 ;//| DMA_CSR_DREQ(1); // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
 }
 
 /**
@@ -337,7 +337,7 @@ void ConfigureDMAMux5()
 	spi3RxTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	spi3RxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 
-	spi3RxTCD->CSR = DMA_CSR_DREQ(1);
+	spi3RxTCD->CSR = 0;//DMA_CSR_DREQ(1);
 }
 
 /**
