@@ -76,7 +76,8 @@ void EDMATcdReset(edma_tcd_t *tcd)
 
 #define SPI3_TX_NCS_TCD (9)  /**< using channel 9 to TX SPI3 data without the CS */
 #define SPI3_RX_NCS_TCD (10) /**< using channel 10 to RX SPI3 data without the CS*/
-#define START_SPI3_NCS_TCD (11) /**< using channel 11 to activate both channels 9 & 10 */
+#define START_SPI3RX_NCS_TCD (11) /**< using channel 11 to activate both channels 9 & 10 */
+#define START_SPI3TX_NCS_TCD (12) /**< using channel 11 to activate both channels 9 & 10 */
 
 #define TRIGGER_DMA_TX_CHANNEL (2)
 #define TRIGGER_DMA_RX_CHANNEL (3)
@@ -190,7 +191,7 @@ void InitSPI3Peripheral()
  */
 const uint32_t gpioPin = 1<<15;
 
-const uint32_t tl_DMA0ERQCh9_10 = 0x600;
+const uint32_t tl_DMA0ERQCh9_10 = 10;
 
 /**
  * as part of MultiDMA test 3, configure channel 0 for RX
@@ -551,8 +552,11 @@ void ConfigureDMAMux10()
 
 }
 
+const uint8_t tl_DMA0SERQRx = SPI3_RX_NCS_TCD;
+const uint8_t tl_DMA0SERQTx = SPI3_TX_NCS_TCD;
+
 /**
- * Activate the SPI3 transfer
+ * Activate the SPI3 RX transfer
  */
 void ConfigureDMAMux11()
 {
@@ -560,32 +564,75 @@ void ConfigureDMAMux11()
 	DMA_Type *dmaBASE = DMA0;
 //	static uint32_t gpioPin = 1<<15;
 #define DELAY_BEFORE_NEXT_DMA_TRIGGER (4)
-	DMAMUX->CHCFG[START_SPI3_NCS_TCD] = 0x0;
-	DMAMUX->CHCFG[START_SPI3_NCS_TCD] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
-	DMAMUX->CHCFG[START_SPI3_NCS_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+	DMAMUX->CHCFG[START_SPI3RX_NCS_TCD] = 0x0;
+	DMAMUX->CHCFG[START_SPI3RX_NCS_TCD] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
+	DMAMUX->CHCFG[START_SPI3RX_NCS_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
 
     /* Configure toggle EDMA transfer channel 8*/
-	triggerSPI3woCSTDC = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[START_SPI3_NCS_TCD];
+	triggerSPI3woCSTDC = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[START_SPI3RX_NCS_TCD];
 	EDMATcdReset(triggerSPI3woCSTDC);
 
 	/*!< SADDR register, used to save source address */
-	triggerSPI3woCSTDC->SADDR = (uint32_t)&(tl_DMA0ERQCh9_10); // our source address is the SPI3 Rx register
+	triggerSPI3woCSTDC->SADDR = (uint8_t)&(tl_DMA0SERQRx); // our source address is the SPI3 Rx register
 	/*!< SOFF register, save offset bytes every transfer */
 	triggerSPI3woCSTDC->SOFF = 0;                     // source address offset set to zero as it does not change
 	/*!< SLAST register */
 	triggerSPI3woCSTDC->SLAST = 0; // number of bytes to change source address after completion
 
 	/*!< DADDR register, used for destination address */
-	triggerSPI3woCSTDC->DADDR = (uint32_t)&(DMA0->ERQ); // where the DMA0->ERQ results will be placed
+	triggerSPI3woCSTDC->DADDR = (uint8_t)&(DMA0->SERQ); // where the DMA0->ERQ results will be placed
 	/*!< DOFF register, used for destination offset */
 	triggerSPI3woCSTDC->DOFF = 0;            // each destination address write will increment by 1 byte
 	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
 	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	triggerSPI3woCSTDC->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
-	triggerSPI3woCSTDC->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	triggerSPI3woCSTDC->NBYTES = 1;           // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
+	triggerSPI3woCSTDC->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
+	triggerSPI3woCSTDC->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
+	triggerSPI3woCSTDC->CSR = START_SPI3TX_NCS_TCD<<8 | 1<<5 ;//| DMA_CSR_DREQ(1); // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
+}
+
+/**
+ * Activate the SPI3 TX transfer
+ */
+void ConfigureDMAMux12()
+{
+	edma_tcd_t *triggerSPI3woCSTDC;
+	DMA_Type *dmaBASE = DMA0;
+//	static uint32_t gpioPin = 1<<15;
+#define DELAY_BEFORE_NEXT_DMA_TRIGGER (4)
+	DMAMUX->CHCFG[START_SPI3TX_NCS_TCD] = 0x0;
+	DMAMUX->CHCFG[START_SPI3TX_NCS_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+    /* Configure toggle EDMA transfer channel 8*/
+	triggerSPI3woCSTDC = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[START_SPI3TX_NCS_TCD];
+	EDMATcdReset(triggerSPI3woCSTDC);
+
+	/*!< SADDR register, used to save source address */
+	triggerSPI3woCSTDC->SADDR = (uint8_t)&(tl_DMA0SERQTx); // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
+	triggerSPI3woCSTDC->SOFF = 0;                     // source address offset set to zero as it does not change
+	/*!< SLAST register */
+	triggerSPI3woCSTDC->SLAST = 0; // number of bytes to change source address after completion
+
+	/*!< DADDR register, used for destination address */
+	triggerSPI3woCSTDC->DADDR = (uint8_t)&(DMA0->SERQ); // where the DMA0->ERQ results will be placed
+	/*!< DOFF register, used for destination offset */
+	triggerSPI3woCSTDC->DOFF = 0;            // each destination address write will increment by 1 byte
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
+	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
+
+	/*!< ATTR register, source/destination transfer size and modulo */
+	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
+	triggerSPI3woCSTDC->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
 	triggerSPI3woCSTDC->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
 	/*!< BITER register, begin minor loop count. */
@@ -1023,5 +1070,6 @@ void XBARWithSPIDMANoCS()
     ConfigureDMAMux9();
     ConfigureDMAMux10();
     ConfigureDMAMux11();
+    ConfigureDMAMux12();
 
 }
