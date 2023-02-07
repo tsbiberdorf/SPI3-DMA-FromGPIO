@@ -24,6 +24,7 @@ extern void InitClocks();
 extern void InitSPI3Peripheral();
 extern void TxTest();
 extern void SingleDMATxTest();
+extern void MultiDMATxTest();
 extern void XBARTest();
 extern void XBARWithSPIDMA();
 extern void XBARWithSPIDMANoCS();
