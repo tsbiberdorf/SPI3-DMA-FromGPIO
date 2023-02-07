@@ -74,6 +74,10 @@ void EDMATcdReset(edma_tcd_t *tcd)
 #define SPI3_TX_TCD (6) /**< using channel 6 to TX SPI3 data */
 #define SPI3_RX_TCD (5) /**< using channel 5 to RX SPI3 data */
 
+#define SPI3_TX_NCS_TCD (9)  /**< using channel 9 to TX SPI3 data without the CS */
+#define SPI3_RX_NCS_TCD (10) /**< using channel 10 to RX SPI3 data without the CS*/
+#define START_SPI3_NCS_TCD (11) /**< using channel 11 to activate both channels 9 & 10 */
+
 #define TRIGGER_DMA_TX_CHANNEL (2)
 #define TRIGGER_DMA_RX_CHANNEL (3)
 
@@ -185,6 +189,8 @@ void InitSPI3Peripheral()
  * CLEAR or SET register.
  */
 const uint32_t gpioPin = 1<<15;
+
+const uint32_t tl_DMA0ERQCh9_10 = 0x600;
 
 /**
  * as part of MultiDMA test 3, configure channel 0 for RX
@@ -385,8 +391,6 @@ void ConfigureDMAMux8()
 	clearTCD->CSR = SPI3_TX_TCD<<8 | 1<<5; // need to set bit 5 to call eDMA channel SPI3_RX_TCD when completed
 
 	dmaBASE->SERQ = CLEAR_CS_TCD; // enable DMA operations
-
-
 }
 
 /**
@@ -480,12 +484,115 @@ void ConfigureDMAMux6()
 
 void ConfigureDMAMux9()
 {
+	DMAMUX->CHCFG[SPI3_RX_NCS_TCD] = 0x0;
+	DMAMUX->CHCFG[SPI3_RX_NCS_TCD] = kDmaRequestMuxLPSPI3Tx;  // set SPI3 TX
+	DMAMUX->CHCFG[SPI3_RX_NCS_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+	DMA_Type *dmaBASE = DMA0;
+	edma_tcd_t *txTCD;
+	/* Configure Tx EDMA transfer, channel 1 */
+	txTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[SPI3_RX_NCS_TCD];
+	EDMATcdReset(txTCD);
+
+	txTCD->SADDR = spi3_Tx_Buffer;  // our source buffer address to start reading from
+	txTCD->SOFF = 1;            // source address offset set to 1 to increment by one byte per transfer
+	txTCD->SLAST = (-1*BUFFER_SIZE);            // source address offset set to 1 to increment by one byte per transfer
+
+	txTCD->DADDR = (uint32_t)&(LPSPI3->TDR); // where the TX data will be placed SPI3 Tx Register
+	txTCD->DOFF = 0;            // each destination address is a hardware registers, so we will not increment it
+	txTCD->DLAST_SGA = 0;
+
+	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	txTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
+	txTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 
 }
 
 void ConfigureDMAMux10()
 {
+	DMAMUX->CHCFG[SPI3_RX_NCS_TCD] = 0x0;
+	DMAMUX->CHCFG[SPI3_RX_NCS_TCD] = kDmaRequestMuxLPSPI3Rx;  // set SPI3 RX
+	DMAMUX->CHCFG[SPI3_RX_NCS_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
 
+
+	DMA_Type *dmaBASE = DMA0;
+	edma_tcd_t *rxTCD;
+
+	/* Configure rx EDMA transfer channel 0*/
+	rxTCD = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[SPI3_RX_NCS_TCD];
+	EDMATcdReset(rxTCD);
+	/*!< SADDR register, used to save source address */
+	rxTCD->SADDR = (uint32_t)&(LPSPI3->RDR); // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
+	rxTCD->SOFF = 0;            // source address offset set to zero as it does not change
+	/*!< SLAST register */
+	rxTCD->SLAST = 0;   // change to make to source address after completion of transfer
+
+	/*!< DADDR register, used for destination address */
+	rxTCD->DADDR = byteBuffer; // where the RX data will be placed
+	/*!< DOFF register, used for destination offset */
+	rxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
+	/*!< ATTR register, source/destination transfer size and modulo */
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
+	rxTCD->DLAST_SGA = (-1*BUFFER_SIZE); // change to make to destination address after transfer completed
+
+	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
+	rxTCD->NBYTES = 1;  // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
+	rxTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
+	rxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
+	// in our case will will trigger a IRQ when the major cycle count completes
+	rxTCD->CSR |= DMA_CSR_INTMAJOR_MASK;
+
+}
+
+/**
+ * Activate the SPI3 transfer
+ */
+void ConfigureDMAMux11()
+{
+	edma_tcd_t *triggerSPI3woCSTDC;
+	DMA_Type *dmaBASE = DMA0;
+//	static uint32_t gpioPin = 1<<15;
+#define DELAY_BEFORE_NEXT_DMA_TRIGGER (4)
+	DMAMUX->CHCFG[START_SPI3_NCS_TCD] = 0x0;
+	DMAMUX->CHCFG[START_SPI3_NCS_TCD] = kDmaRequestMuxXBAR1Request3;  // XBAR1 output 3
+	DMAMUX->CHCFG[START_SPI3_NCS_TCD] |= DMAMUX_CHCFG_ENBL_MASK; // enable
+
+    /* Configure toggle EDMA transfer channel 8*/
+	triggerSPI3woCSTDC = (edma_tcd_t *)(uint32_t)&dmaBASE->TCD[START_SPI3_NCS_TCD];
+	EDMATcdReset(triggerSPI3woCSTDC);
+
+	/*!< SADDR register, used to save source address */
+	triggerSPI3woCSTDC->SADDR = (uint32_t)&(tl_DMA0ERQCh9_10); // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
+	triggerSPI3woCSTDC->SOFF = 0;                     // source address offset set to zero as it does not change
+	/*!< SLAST register */
+	triggerSPI3woCSTDC->SLAST = 0; // number of bytes to change source address after completion
+
+	/*!< DADDR register, used for destination address */
+	triggerSPI3woCSTDC->DADDR = (uint32_t)&(DMA0->ERQ); // where the DMA0->ERQ results will be placed
+	/*!< DOFF register, used for destination offset */
+	triggerSPI3woCSTDC->DOFF = 0;            // each destination address write will increment by 1 byte
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
+	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
+
+	/*!< ATTR register, source/destination transfer size and modulo */
+	triggerSPI3woCSTDC->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
+	triggerSPI3woCSTDC->NBYTES = 4;           // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
+	triggerSPI3woCSTDC->CITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
+	triggerSPI3woCSTDC->BITER = 1;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
+	triggerSPI3woCSTDC->CSR = 0;
 }
 
 
@@ -915,5 +1022,6 @@ void XBARWithSPIDMANoCS()
 	InitXBAR();
     ConfigureDMAMux9();
     ConfigureDMAMux10();
+    ConfigureDMAMux11();
 
 }
