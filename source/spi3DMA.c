@@ -555,6 +555,8 @@ void ConfigureDMAMux10()
 const uint8_t tl_DMA0SERQRx = SPI3_RX_NCS_TCD;
 const uint8_t tl_DMA0SERQTx = SPI3_TX_NCS_TCD;
 
+volatile uint8_t tl_RxSERQ = 0;
+
 /**
  * Activate the SPI3 RX transfer
  */
@@ -580,6 +582,7 @@ void ConfigureDMAMux11()
 	triggerSPI3woCSTDC->SLAST = 0; // number of bytes to change source address after completion
 
 	/*!< DADDR register, used for destination address */
+//	triggerSPI3woCSTDC->DADDR = (uint8_t)&(tl_RxSERQ); // where the DMA0->ERQ results will be placed
 	triggerSPI3woCSTDC->DADDR = (uint8_t)&(DMA0->SERQ); // where the DMA0->ERQ results will be placed
 	/*!< DOFF register, used for destination offset */
 	triggerSPI3woCSTDC->DOFF = 0;            // each destination address write will increment by 1 byte
@@ -599,6 +602,7 @@ void ConfigureDMAMux11()
 	triggerSPI3woCSTDC->CSR = START_SPI3TX_NCS_TCD<<8 | 1<<5 ;//| DMA_CSR_DREQ(1); // need to set bit 5 to call eDMA channel SET_CS_TCD when completed
 }
 
+volatile uint8_t tl_TxSERQ = 0;
 /**
  * Activate the SPI3 TX transfer
  */
@@ -623,7 +627,8 @@ void ConfigureDMAMux12()
 	triggerSPI3woCSTDC->SLAST = 0; // number of bytes to change source address after completion
 
 	/*!< DADDR register, used for destination address */
-	triggerSPI3woCSTDC->DADDR = (uint8_t)&(DMA0->SERQ); // where the DMA0->ERQ results will be placed
+	triggerSPI3woCSTDC->DADDR = (uint8_t)&(tl_TxSERQ); // where the DMA0->ERQ results will be placed
+//	triggerSPI3woCSTDC->DADDR = (uint8_t)&(DMA0->SERQ); // where the DMA0->ERQ results will be placed
 	/*!< DOFF register, used for destination offset */
 	triggerSPI3woCSTDC->DOFF = 0;            // each destination address write will increment by 1 byte
 	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
