@@ -29,6 +29,8 @@ extern void XBARTest();
 extern void XBARWithSPIDMA();
 extern void XBARWithSPIDMANoCS();
 extern void XBARWithSPIDMASerq();
+extern void StopXBARTest();
+extern void ReStartXBARTest();
 
 /*******************************************************************************
  * Code
@@ -46,7 +48,7 @@ int main(void)
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 
-    PRINTF("SPI3 DMA from GPIO test\r\n\r\n\r\n");
+    PRINTF("\r\n\r\nSPI3 DMA from GPIO test\r\n");
 
 
     while (1)
@@ -92,6 +94,14 @@ int main(void)
         	// it will activate the CS line, trigger the SPI3 DMA transfer of 25 bytes
         	// then it will negate the CS pin
         	XBARWithSPIDMASerq();
+        	break;
+        case '9':
+        	// stop test '9' operations
+        	StopXBARTest();
+        	break;
+        case 'a':
+        	// stop test '9' operations
+        	ReStartXBARTest();
         	break;
 
         }

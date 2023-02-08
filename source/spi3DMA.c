@@ -1019,7 +1019,15 @@ void SERQ16(uint32_t Channel)
 {
 	DMA_Type *dmaBASE = DMA0;
 	dmaBASE->SERQ = Channel; // enable DMA operations
+}
 
+/**
+ *
+ */
+void CERQ16(uint32_t Channel)
+{
+	DMA_Type *dmaBASE = DMA0;
+	dmaBASE->CERQ = Channel; // enable DMA operations
 }
 
 /**
@@ -1145,6 +1153,7 @@ void DMA0_DMA16_DriverIRQHandler()
 	DMA0_irq();
 }
 
+volatile uint32_t irqDma13Cnt = 0;
 
 /**
  * irq method will clear the pending interrupt
@@ -1152,11 +1161,10 @@ void DMA0_DMA16_DriverIRQHandler()
 void DMA13_irq(void)
 {
 	DMA_Type *dmaBASE = DMA0;
-	static uint32_t irqDmaCnt = 0;
 	dmaBASE->INT |= 1<<13; // clear IRQ13
 
 	GPIO1->DR_TOGGLE = 1<<16; // toggle GPIO_AD_B1_00
-	irqDmaCnt++;
+	irqDma13Cnt++;
 }
 
 /**
@@ -1404,7 +1412,8 @@ void XBARWithSPIDMANoCS()
 
 
 /**
- *
+ * Start test case '8'.  This test will use 8 dma channels and
+ * start the SPI transfers using SERQ register writes.
  */
 void XBARWithSPIDMASerq()
 {
@@ -1437,3 +1446,18 @@ void XBARWithSPIDMASerq()
 
 }
 
+/**
+ * stop the DMA operations happening in test case '8'
+ */
+void StopXBARTest()
+{
+    CERQ16(TCD_ACT_CS); // CERQ 16 (Activate the CS) to stop on falling edge
+}
+
+/**
+ * Restart test case '8'
+ */
+void ReStartXBARTest()
+{
+    SERQ16(TCD_ACT_CS); // SERQ 16 (Activate the CS) to start on falling edge
+}
