@@ -169,6 +169,11 @@ void InitSPI3Peripheral()
 		IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_14] = ALT2;
 		IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_14] = CTL_PAD;
 
+		// GPIO_AD_B1_00 Arduino pin J17-10 to be used for profile measurements
+		IOMUXC->SW_MUX_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_00] = ALT5;
+		IOMUXC->SW_PAD_CTL_PAD[kIOMUXC_SW_MUX_CTL_PAD_GPIO_AD_B1_00] = CTL_PAD;
+		GPIO1->GDIR = 1<<16; // set GPIO_AD_B1_00 as output
+
 		LPSPI3->CR  = 0;  // disable
 		LPSPI3->CFGR1 = 1; // master mode
 		LPSPI3->CR  = 1;  // enable
@@ -219,7 +224,7 @@ void ConfigureDMAMux0()
 	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
 	rxTCD->DLAST_SGA = (-1*BUFFER_SIZE); // change to make to destination address after transfer completed
 
-	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	rxTCD->NBYTES = 1;  // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -251,7 +256,7 @@ void ConfigureDMAMux1()
 	txTCD->DOFF = 0;            // each destination address is a hardware registers, so we will not increment it
 	txTCD->DLAST_SGA = 0;
 
-	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	txTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	txTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -290,7 +295,7 @@ void ConfigureDMAMux2()
 	clearTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	clearTCD->NBYTES = 4*DELAY_BEFORE_NEXT_DMA_TRIGGER;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -334,7 +339,7 @@ void ConfigureDMAMux3()
 	setTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	setTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -380,7 +385,7 @@ void ConfigureDMAMux8()
 	clearTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	clearTCD->NBYTES = 4*DELAY_BEFORE_NEXT_DMA_TRIGGER;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -423,7 +428,7 @@ void ConfigureDMAMux7()
 	setTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	setTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -471,7 +476,7 @@ void ConfigureDMAMux6()
 	spi3TxTCD->DLAST_SGA = 0;
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	spi3TxTCD->ATTR = 0x0;       // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	spi3TxTCD->ATTR = 0x0;       // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	spi3TxTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -503,7 +508,7 @@ void ConfigureDMAMux9()
 	txTCD->DOFF = 0;            // each destination address is a hardware registers, so we will not increment it
 	txTCD->DLAST_SGA = 0;
 
-	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	txTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	txTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -538,7 +543,7 @@ void ConfigureDMAMux10()
 	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
 	rxTCD->DLAST_SGA = (-1*BUFFER_SIZE); // change to make to destination address after transfer completed
 
-	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	rxTCD->NBYTES = 1;  // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -593,7 +598,7 @@ void ConfigureDMAMux11()
 	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	triggerSPI3woCSTDC->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -643,7 +648,7 @@ void ConfigureDMAMux12()
 	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	triggerSPI3woCSTDC->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -693,7 +698,7 @@ void ConfigureDMAMux5()
 	spi3RxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
 	spi3RxTCD->DLAST_SGA = (-1*BUFFER_SIZE);
 
-	spi3RxTCD->ATTR = 0x0;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	spi3RxTCD->ATTR = 0x0;       // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	spi3RxTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	spi3RxTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	spi3RxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -778,7 +783,7 @@ void ConfigureDMAMux13()
 	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
 	rxTCD->DLAST_SGA = (-1*BUFFER_SIZE); // change to make to destination address after transfer completed
 
-	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	rxTCD->NBYTES = 1;  // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -815,7 +820,7 @@ void ConfigureDMAMux14()
 	txTCD->DOFF = 0;            // each destination address is a hardware registers, so we will not increment it
 	txTCD->DLAST_SGA = 0;
 
-	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	txTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	txTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -851,7 +856,7 @@ void ConfigureDMAMux15()
 	setTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	setTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	setTCD->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -896,7 +901,7 @@ void ConfigureDMAMux16()
 	clearTCD->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	clearTCD->ATTR = 0x0202;       // transfer size of 4 byte (010b => 32-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	clearTCD->NBYTES = 4*DELAY_BEFORE_NEXT_DMA_TRIGGER;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -909,6 +914,9 @@ void ConfigureDMAMux16()
 
 }
 
+/**
+ * tl_RxSerqTrigger variable will hold the SERQ assignment to start the SPI3 RX DMA read operation
+ */
 uint32_t tl_RxSerqTrigger = TCD_SPI3_RX;
 
 /**
@@ -944,7 +952,7 @@ void ConfigureDMAMux17()
 	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	triggerSPI3woCSTDC->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -957,6 +965,9 @@ void ConfigureDMAMux17()
 
 }
 
+/**
+ * tl_TxSerqTrigger variable will hold the SERQ assignment to start the SPI3 TX DMA write operation
+ */
 uint32_t tl_TxSerqTrigger = TCD_SPI3_TX;
 
 /**
@@ -982,7 +993,6 @@ void ConfigureDMAMux18()
 	triggerSPI3woCSTDC->SLAST = 0; // number of bytes to change source address after completion
 
 	/*!< DADDR register, used for destination address */
-//	triggerSPI3woCSTDC->DADDR = (uint32_t)&(tl_TxDest); // where the DMA0->ERQ results will be placed
 	triggerSPI3woCSTDC->DADDR = (uint32_t)&(DMA0->SERQ); // where the DMA0->ERQ results will be placed
 	/*!< DOFF register, used for destination offset */
 	triggerSPI3woCSTDC->DOFF = 0;            // each destination address write will increment by 1 byte
@@ -990,7 +1000,7 @@ void ConfigureDMAMux18()
 	triggerSPI3woCSTDC->DLAST_SGA = 0; // change to make to destination address after transfer completed
 
 	/*!< ATTR register, source/destination transfer size and modulo */
-	triggerSPI3woCSTDC->ATTR = 0x0000;       // transfer size of 4 byte (010b => 32-bit) refer to page 134 of RM spec.
+	triggerSPI3woCSTDC->ATTR = 0x0000;                   // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21  of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
 	triggerSPI3woCSTDC->NBYTES = 4;           // number of bytes in each minor loop transfer.
 	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
@@ -1002,6 +1012,9 @@ void ConfigureDMAMux18()
 	triggerSPI3woCSTDC->CSR = 0;
 }
 
+/**
+ * Make channel assignment to the SERQ (Set Enable Request Register)
+ */
 void SERQ16(uint32_t Channel)
 {
 	DMA_Type *dmaBASE = DMA0;
@@ -1023,22 +1036,22 @@ void InitXBAR()
 #define CTL_PAD_INPUT (0xF000) // (PORT_WITH_HYSTERESIS | PORT_PS_DOWN_ENABLE | PORT_PS_UP_ENABLE)
 
 	// start XBAR1 clocks
-	// refer to Ref Manual, page 1147&1148, section 14.7.23
-	// CCM Clock Gating Register 2 (CCM_CCGR5) bits 23..22
+	// refer to Ref Manual, page 1084, section 14.7.26
+	// CCM Clock Gating Register 5 (CCM_CCGR5) bits 23..22
 	CCM->CCGR2 |= 0x00C00000;
 
 	// iomuxc_snvs_gpr_clk_enable
-	// refer to Ref Manual, page 1148&1149, section 14.7.24
-	// CCM Clock Gating Register 2 (CCM_CCGR3) bits 31...30
+	// refer to Ref Manual, page 1081, section 14.7.24
+	// CCM Clock Gating Register 3 (CCM_CCGR3) bits 31...30
 	CCM->CCGR3 |= 0xC0000000;
 
 	// iomuxc_snvs_clk_enable
-	// refer to Ref Manual, page 1147&1148, section 14.7.23
+	// refer to Ref Manual, page 1080, section 14.7.23
 	// CCM Clock Gating Register 2 (CCM_CCGR2) bits 5...4
 	CCM->CCGR2 |= 0x0030;
 
 	// iomuxc_gpr_clk_enable (bits 5..4) and iomuxc_clk_enable (bits 3..2)
-	// refer to Ref Manual, page 1149&1150, section 14.7.25
+	// refer to Ref Manual, page 1083, section 14.7.25
 	// CCM Clock Gating Register 4 bits 5...4 & 3..2
 	CCM->CCGR4 |= 0x003C;
 
@@ -1057,7 +1070,7 @@ void InitXBAR()
 	 * in sections:
 	 *      11.6.385 XBAR1_IN04_SELECT_INPUT DAISY
 	 *      11.6.387 XBAR1_IN06_SELECT_INPUT DAISY
-	 * starting near Page 901 of RM spec
+	 * starting near Page 898 of RM spec
 	 * these two MUX operations need to select the PADs that were using.
 	 */
 	*((uint32_t *)(IOMUXC_BASE+0x614)) = 0x1;
@@ -1112,12 +1125,10 @@ static uint8_t volatile combineDMATriggerFlag = 1;
 static uint8_t volatile triggerTxERQ = 1;
 static uint8_t volatile triggerRxERQ = 1;
 
-void DMA0_DMA16_DriverIRQHandler()
-{
-	DMA_irq();
-}
-
-void DMA_irq(void)
+/**
+ * irq method will clear the pending interrupt
+ */
+void DMA0_irq(void)
 {
 	DMA_Type *dmaBASE = DMA0;
 	static uint32_t irqDmaCnt = 0;
@@ -1125,6 +1136,37 @@ void DMA_irq(void)
 
 	irqDmaCnt++;
 }
+
+/**
+ * replace weak Hander method from vector table
+ */
+void DMA0_DMA16_DriverIRQHandler()
+{
+	DMA0_irq();
+}
+
+
+/**
+ * irq method will clear the pending interrupt
+ */
+void DMA13_irq(void)
+{
+	DMA_Type *dmaBASE = DMA0;
+	static uint32_t irqDmaCnt = 0;
+	dmaBASE->INT |= 1<<13; // clear IRQ13
+
+	GPIO1->DR_TOGGLE = 1<<16; // toggle GPIO_AD_B1_00
+	irqDmaCnt++;
+}
+
+/**
+ * replace weak Hander method from vector table
+ */
+void DMA13_DMA29_DriverIRQHandler()
+{
+	DMA13_irq();
+}
+
 
 /**
  * This function follows the operations that the evkmimxrt1060_lpspi_edma_b2b_transfer_master SDK
@@ -1164,7 +1206,7 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	rxTCD->SOFF = 0;            // source address offset set to zero as it does not change
 	rxTCD->DADDR = byteBuffer; // where the RX data will be placed
 	rxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
-	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	rxTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	rxTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	rxTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -1180,7 +1222,7 @@ void RestSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 	txTCD->SOFF = 1;            // source address offset set to 1 to increment by one byte per transfer
 	txTCD->DADDR = (uint32_t)&(LPSPI3->TDR); // where the TX data will be placed SPI3 Tx Register
 	txTCD->DOFF = 0;            // each destination address is a hardware registers, so we will not increment it
-	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to page 134 of RM spec.
+	txTCD->ATTR = 0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	txTCD->NBYTES = 1;           // number of bytes in each minor loop transfer.
 	txTCD->CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
 	txTCD->BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
@@ -1391,5 +1433,7 @@ void XBARWithSPIDMASerq()
     ConfigureDMAMux18(); // SERQ 14 (TX) to start
 
     SERQ16(TCD_ACT_CS); // SERQ 16 (Activate the CS) to start on falling edge
+	NVIC_EnableIRQ(TCD_SPI3_RX); // refer to section 4.3 to verify selection of the correct IRQ number to match the DMA channel
+
 }
 

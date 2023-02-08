@@ -46,7 +46,7 @@ int main(void)
     BOARD_InitBootClocks();
     BOARD_InitDebugConsole();
 
-    PRINTF("SPI3 DMA from GPIO test\r\n");
+    PRINTF("SPI3 DMA from GPIO test\r\n\r\n\r\n");
 
 
     while (1)
@@ -88,6 +88,9 @@ int main(void)
         	XBARWithSPIDMANoCS();
         	break;
         case '8':
+        	// This test case does the full operation of detecting the falling edge
+        	// it will activate the CS line, trigger the SPI3 DMA transfer of 25 bytes
+        	// then it will negate the CS pin
         	XBARWithSPIDMASerq();
         	break;
 
