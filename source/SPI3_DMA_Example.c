@@ -28,6 +28,7 @@ extern void MultiDMATxTest();
 extern void XBARTest();
 extern void XBARWithSPIDMA();
 extern void XBARWithSPIDMANoCS();
+extern void XBARWithSPIDMASerq();
 
 /*******************************************************************************
  * Code
@@ -85,6 +86,9 @@ int main(void)
         case '7':
         	// XBAR with SPI DMA test
         	XBARWithSPIDMANoCS();
+        	break;
+        case '8':
+        	XBARWithSPIDMASerq();
         	break;
 
         }
