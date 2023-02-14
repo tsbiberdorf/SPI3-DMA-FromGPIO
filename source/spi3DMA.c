@@ -30,14 +30,6 @@
 static volatile uint8_t tl_ClocksInitFlag = 1;
 static volatile uint8_t tl_PeripheralInitFlag = 1;
 
-/**
- * @NOTE cannot confirm as to why the received data will not be placed correctly
- * in the buffer that is passed in the the parameter call, but will work fine if
- * stored to this memory buffer.
- *
- * Please explain????
- */
-volatile uint8_t byteBuffer[25];
 
 void EDMATcdReset(edma_tcd_t *tcd)
 {
@@ -81,6 +73,17 @@ void EDMATcdReset(edma_tcd_t *tcd)
 
 #define TRIGGER_DMA_TX_CHANNEL (2)
 #define TRIGGER_DMA_RX_CHANNEL (3)
+
+/**
+ * @NOTE cannot confirm as to why the received data will not be placed correctly
+ * in the buffer that is passed in the the parameter call, but will work fine if
+ * stored to this memory buffer.
+ *
+ * Please explain????
+ */
+volatile uint8_t byteBuffer[BUFFER_SIZE];
+volatile uint8_t pingBuffer[BUFFER_SIZE];
+volatile uint8_t pongBuffer[BUFFER_SIZE];
 
 volatile uint8_t spi3_Rx_Buffer[BUFFER_SIZE];
 volatile uint8_t spi3_Tx_Buffer[BUFFER_SIZE];
@@ -198,6 +201,75 @@ const uint32_t csPinMask = 1<<15;
 
 const uint32_t tl_DMA0ERQCh9_10 = 10;
 
+edma_tcd_t tl_RxPong;
+edma_tcd_t tl_RxPing;
+
+void ConfigurePingPong()
+{
+	EDMATcdReset(&tl_RxPing);
+
+	/* Configure rx EDMA transfer channel 0*/
+	/*!< SADDR register, used to save source address */
+	tl_RxPing.SADDR = (uint32_t)&(LPSPI3->RDR); // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
+	tl_RxPing.SOFF = 0;            // source address offset set to zero as it does not change
+	/*!< SLAST register */
+	tl_RxPing.SLAST = 0;   // change to make to source address after completion of transfer
+
+	/*!< DADDR register, used for destination address */
+	tl_RxPing.DADDR = (uint32_t)pingBuffer; // where the RX data will be placed
+	/*!< DOFF register, used for destination offset */
+	tl_RxPing.DOFF = 1;            // each destination address write will increment by 1 byte
+	/*!< ATTR register, source/destination transfer size and modulo */
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
+	tl_RxPing.DLAST_SGA = (uint32_t)&tl_RxPong; // change to make to destination address after transfer completed
+
+	tl_RxPing.ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
+	tl_RxPing.NBYTES = 1;  // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
+	tl_RxPing.CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
+	tl_RxPing.BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
+	// in our case will will trigger a IRQ when the major cycle count completes
+	tl_RxPing.CSR = 0;
+	tl_RxPing.CSR |= DMA_CSR_INTMAJOR_MASK|DMA_CSR_ESG_MASK;
+
+	EDMATcdReset(&tl_RxPong);
+
+	/* Configure rx EDMA transfer channel 0*/
+	/*!< SADDR register, used to save source address */
+	tl_RxPong.SADDR = (uint32_t)&(LPSPI3->RDR); // our source address is the SPI3 Rx register
+	/*!< SOFF register, save offset bytes every transfer */
+	tl_RxPong.SOFF = 0;            // source address offset set to zero as it does not change
+	/*!< SLAST register */
+	tl_RxPong.SLAST = 0;   // change to make to source address after completion of transfer
+
+	/*!< DADDR register, used for destination address */
+	tl_RxPong.DADDR = (uint32_t)pongBuffer; // where the RX data will be placed
+	/*!< DOFF register, used for destination offset */
+	tl_RxPong.DOFF = 1;            // each destination address write will increment by 1 byte
+	/*!< ATTR register, source/destination transfer size and modulo */
+	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
+	tl_RxPong.DLAST_SGA = (uint32_t)&tl_RxPing; // change to make to destination address after transfer completed
+
+	tl_RxPong.ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
+	/*!< Nbytes register, minor loop length in bytes */
+	tl_RxPong.NBYTES = 1;  // number of bytes in each minor loop transfer.
+	/*!< CITER register, current minor loop numbers, for unfinished minor loop.*/
+	tl_RxPong.CITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+	/*!< BITER register, begin minor loop count. */
+	tl_RxPong.BITER = BUFFER_SIZE;  // number of bytes(loops) in the complete one ADC read operation
+
+	/*!< CSR register, for TCD control status */
+	// in our case will will trigger a IRQ when the major cycle count completes
+	tl_RxPong.CSR = 0;
+	tl_RxPong.CSR |= DMA_CSR_INTMAJOR_MASK|DMA_CSR_ESG_MASK;
+
+}
+
 /**
  * as part of MultiDMA test 3, configure channel 0 for RX
  */
@@ -217,12 +289,12 @@ void ConfigureDMAMux0()
 	rxTCD->SLAST = 0;   // change to make to source address after completion of transfer
 
 	/*!< DADDR register, used for destination address */
-	rxTCD->DADDR = byteBuffer; // where the RX data will be placed
+	rxTCD->DADDR = (uint32_t)byteBuffer; // where the RX data will be placed
 	/*!< DOFF register, used for destination offset */
 	rxTCD->DOFF = 1;            // each destination address write will increment by 1 byte
 	/*!< ATTR register, source/destination transfer size and modulo */
 	/*!< DLASTSGA register, next tcd address used in scatter-gather mode */
-	rxTCD->DLAST_SGA = (-1*BUFFER_SIZE); // change to make to destination address after transfer completed
+	rxTCD->DLAST_SGA = (uint32_t)&tl_RxPing; // change to make to destination address after transfer completed
 
 	rxTCD->ATTR = 0x0;            // transfer size of 1 byte (000b => 8-bit) refer to section 6.5.5.21 of RM spec.
 	/*!< Nbytes register, minor loop length in bytes */
@@ -234,7 +306,8 @@ void ConfigureDMAMux0()
 
 	/*!< CSR register, for TCD control status */
 	// in our case will will trigger a IRQ when the major cycle count completes
-	rxTCD->CSR |= DMA_CSR_INTMAJOR_MASK;
+	rxTCD->CSR &= ~DMA_CSR_ESG_MASK;
+	rxTCD->CSR |= DMA_CSR_INTMAJOR_MASK|DMA_CSR_ESG_MASK;
 }
 
 /**
@@ -1284,7 +1357,7 @@ void MultiLoopSPI3Peripheral(uint8_t *ptrTxBuffer,uint8_t *ptrRxBuffer)
 
 		ConfigureDMAMux0();
 		ConfigureDMAMux1();
-
+		ConfigurePingPong();
 
 		dmaBASE->SERQ = DMA_SERQ_SERQ(0); // eDMA starts transfer RX channel
 		dmaBASE->SERQ = DMA_SERQ_SERQ(1); // eDMA starts transfer TX channel
